@@ -1,0 +1,10 @@
+fileignoreconfig:
+- filename: test/mosquitto.passwd
+  checksum: 220a14f3de32f10a11edcc697d4cca9d6e467ccc8dede303231c7335f31e7fd4
+- filename: bin/test_home_assistant_mqtt
+  checksum: dcd99aa5d6533c8777f8aa4ecfa6ca900360b20e80db05658625dd763b3b4d20
+- filename: bin/test_relay_mqtt
+  checksum: 94f9479960cd37187cefb829e1255abb82205e435b50c18ea781c234faa90883
+- filename: config/topics.yml.erb
+  checksum: 4962c73f3ac72c7e414d32c27b106426fe5d2861978b1a1b2ac1241439122048
+version: ""

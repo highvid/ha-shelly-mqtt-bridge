@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+require 'bundler'
+require 'active_support/all'
+
+Bundler.require(:default, :development)
+
+def tputs(message)
+  puts "#{Time.now}: #{message}"
+  puts "----------------------------------------------"
+end
+
+require_relative '../lib/config'
+require_relative '../lib/self_healing_array'
+require_relative '../lib/self_healing_hash'
+require_relative '../lib/entities'
+require_relative '../lib/devices'
+require_relative '../lib/mqtt'
+require_relative '../lib/http_clients'
+
+Config.init!
+mqtt = Mqtt::Subscriber.new
+mqtt.subscribe!

@@ -1,0 +1,21 @@
+mqtt:
+  home_assistant:
+    host: <%= ENV['HOME_ASSISTANT_MQTT_HOST'] %>
+    port: <%= ENV['HOME_ASSISTANT_MQTT_PORT'] %>
+    username: <%= ENV['HOME_ASSISTANT_MQTT_USER'] %>
+    password: <%= ENV['HOME_ASSISTANT_MQTT_PASSWORD'] %>
+  relay:
+    host: <%= ENV['RELAY_MQTT_HOST'] %>
+    port: <%= ENV['RELAY_MQTT_PORT'] %>
+    username: <%= ENV['RELAY_MQTT_USER'] %>
+    password: <%= ENV['RELAY_MQTT_PASSWORD'] %>
+devices:
+  shelly_dimmer_2:
+    <% ENV['SHELLY_DIMMER_2'].split(',').uniq.each do |topic| %>
+      - <%= topic %>
+    <% end %>
+
+  shelly_2_5:
+    <% ENV['SHELLY_2_5'].split(',').uniq.each do |topic| %>
+      - <%= topic %>
+    <% end %>

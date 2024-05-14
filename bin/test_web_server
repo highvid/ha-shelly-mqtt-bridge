@@ -1,0 +1,33 @@
+#!/usr/bin/env python
+
+import os
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+PORT = int(os.environ.get('PORT', 8000))  # You can change this port if needed
+
+class DummyHandler(BaseHTTPRequestHandler):
+
+  def do_GET(self):
+    self.send_response(200)
+    self.send_header('Content-type', 'text/plain')
+    self.end_headers()
+    self.wfile.write(b"Success! (This is a dummy server)")
+
+  def do_POST(self):
+    # Handle POST requests the same as GET (always return 200)
+    self.do_GET()
+
+  def do_PUT(self):
+    # Handle PUT requests the same as GET (always return 200)
+    self.do_GET()
+
+  def do_DELETE(self):
+    # Handle DELETE requests the same as GET (always return 200)
+    self.do_GET()
+
+  # You can add similar methods for other HTTP verbs (HEAD, OPTIONS, etc.)
+
+print(f"Starting dummy server on port {PORT}")
+server_address = ('', PORT)
+httpd = HTTPServer(server_address, DummyHandler)
+httpd.serve_forever()

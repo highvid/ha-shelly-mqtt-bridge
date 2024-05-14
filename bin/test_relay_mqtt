@@ -1,0 +1,7 @@
+#!/bin/bash
+
+SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+tabset "RELAY SERVER"
+docker run -it -p 1885:1883 -v "${SCRIPT_PATH}/../test/mosquitto_relay.conf:/mosquitto/config/mosquitto.conf" -v "${SCRIPT_PATH}/../test/mosquitto.passwd:/mosquitto/config/mosquitto.passwd" eclipse-mosquitto
+
+docker run -it -p 1883:1883 -v "${PWD}/mosquitto.conf:/mosquitto/config/mosquitto.conf" -v "${PWD}/mosquitto.passwd:/mosquitto/config/mosquitto.passwd" eclipse-mosquitto
