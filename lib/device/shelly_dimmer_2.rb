@@ -125,7 +125,7 @@ module Device
     end
 
     def http_client
-      @http_client ||= HttpClient.new(ip_address)
+      @http_client ||= HttpClient::ShellyDimmer2.new(ip_address)
     end
 
     def brightness_adapt(message)
