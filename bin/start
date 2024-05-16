@@ -2,6 +2,7 @@
 
 require 'bundler'
 require 'active_support/all'
+require 'timeout'
 
 Bundler.require(:default, :development)
 Dotenv.load('.env.local') if File.exist?('.env.local')

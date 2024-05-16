@@ -66,8 +66,12 @@ module Device
     def announce!
       client = Config.singleton.relay_mqtt
       announcement = Thread.new do
-        _topic, message = client.get
+        _topic, message = Timeout.timeout(5) { client.get }
         Thread.current[:output]  = message
+      rescue Timeout::Error
+        tputs "Retrying publishing for announcement on #{@announce_topic} "
+        client.publish(@announce_topic, @announce_payload)
+        retry
       end
       tputs "Subscribing for announcement on #{@announce_listen_topic} "
       client.subscribe(@announce_listen_topic)
