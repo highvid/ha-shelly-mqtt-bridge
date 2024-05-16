@@ -79,7 +79,6 @@ module Device
       @announce_listen_topic = "shellies/#{unique_id}/info"
       @announce_method_adapter = :announce_message_process
       @post_init_update_announce = :post_init
-      @last_updated = Time.new(0)
       init!(options)
     end
 

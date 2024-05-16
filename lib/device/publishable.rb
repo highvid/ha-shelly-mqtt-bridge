@@ -15,11 +15,6 @@ module Device
     attr_reader :announce_topic, :announce_listen_topic, :announce_output, :announce_payload, :device_id, :ip_address,
                 :name, :post_init_update_announce, :topic, :topic_base, :topic_hash, :unique_id
 
-    def http_client
-      return if @ip_address.blank?
-      @http_client ||= HttpClient.new(@ip_address)
-    end
-
     def publish_topic_prefix
       "blighvid/#{unique_id}"
     end
@@ -84,6 +79,10 @@ module Device
       @announce_output = announcement[:output]
       tputs "Announcement output for #{self.unique_id} #{@announce_output}"
       send(@announce_method_adapter, @announce_output)
+    end
+
+    def force_publish_all!
+      entities.each { |entity| entity.force_publish_all! }
     end
 
     def initialize_entity(entity_hash)

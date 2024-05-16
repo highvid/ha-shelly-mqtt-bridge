@@ -1,5 +1,12 @@
 module Mqtt
   class Subscriber
+    HOME_ASSISTANT_UPDATES_TOPIC = 'homeassistant/status'
+
+    def initialize
+      @was_offline = false
+      @now_online = true
+    end
+
     def subscribe!
       tputs "Starting subscription..."
       ht = handler_topic_listeners
@@ -8,6 +15,8 @@ module Mqtt
       Config.singleton.relay_mqtt.subscribe(Config.singleton.aggregated_topics.keys) if Config.singleton.aggregated_topics.keys.present?
       tputs "Subscribing to updates on home assistant mqtt topic #{Config.singleton.aggregated_command_topics.keys}"
       Config.singleton.home_assistant_mqtt.subscribe(Config.singleton.aggregated_command_topics.keys) if Config.singleton.aggregated_command_topics.keys.present?
+      tputs "Subscribing to updates from homeassitant"
+      Config.singleton.home_assistant_mqtt.subscribe(HOME_ASSISTANT_UPDATES_TOPIC) if Config.singleton.aggregated_command_topics.keys.present?
       ht.join && hc.join
     end
 
@@ -18,7 +27,7 @@ module Mqtt
           if Config.singleton.aggregated_topics[topic].present?
             handle(topic, Config.singleton.aggregated_topics[topic], message)
           else
-            tpus "Unknown handler for #{topic}"
+            tputs "Unknown handler for #{topic}"
           end
         end
       rescue => e
@@ -33,9 +42,16 @@ module Mqtt
         Config.singleton.home_assistant_mqtt.get do |topic, message|
           tputs "Got command from topic #{topic} -> #{message}"
           if Config.singleton.aggregated_command_topics[topic].present?
-            handle(topic, Config.singleton.aggregated_command_topics[topic], message)
+            handle(topic, Config.singleton.aggregated_command_topics[topic] || [], message)
+          elsif topic == HOME_ASSISTANT_UPDATES_TOPIC
+            @now_online = message == 'online'
+            if @was_offline && @now_online
+              tputs "Force updating all devices"
+              Config.singleton.devices.each { |device| device.force_publish_all! }
+            end
+            @was_offline = message == 'offline'
           else
-            tpus "Unknown command handler for #{topic}"
+            tputs "Unknown command handler for #{topic}"
           end
         end
       rescue => e
@@ -46,7 +62,6 @@ module Mqtt
     end
 
     def handle(topic, handlers, message)
-      puts "MMM: handlers == #{handlers}" if topic == 'blighvid/shelly-living-far-downlights/command'
       Thread.new do
         handlers.each do |handler|
           state_to_update = handler[:state]
@@ -60,6 +75,9 @@ module Mqtt
             tputs "Setting #{handler[:entity].name}'s #{state_to_update} to #{adapted_info}"
             handler[:entity].send("#{state_to_update}=", adapted_info) if handler[:entity]
           end
+        end
+
+        if topic == HOME_ASSISTANT_UPDATES_TOPIC
         end
       rescue => e
         tputs "Exception in handler for topic #{topic}: #{e.message}"

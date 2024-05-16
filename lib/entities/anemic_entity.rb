@@ -214,6 +214,18 @@ module Entities
       @config_published ||= false
     end
 
+    def force_publish_all!
+      tputs "Force publishing on discovery topic #{@discovery_topic} for #{self.device.name}#"
+      Config.singleton.home_assistant_mqtt.publish(@discovery_topic, discovery_payload.to_json)
+      self.class.publish_attributes.each do |attribute_name, info|
+        topic_name = send(attribute_name)
+        value = send(info[:method])
+        value = value.to_json if value.is_a?(Hash)
+        tputs "Force publishing on #{topic_name} for #{self.device.name}##{self.name}##{info[:method]} = #{value}"
+        Config.singleton.home_assistant_mqtt.publish(topic_name, value)
+      end
+    end
+
     def setup_publishers!
       Config.threadize(900, 5) do
         if self.device.initialized

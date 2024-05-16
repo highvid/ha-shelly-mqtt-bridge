@@ -1,40 +1,40 @@
 module Device
-  class ShellyDimmer2
-    DEVICE = 'ShellyDimmer2'
+  class ShellyPlus1Pm
+    DEVICE = 'ShellyPlus1PM'
     include Publishable
-    binary_sensor :input_0, :input_1,
+    binary_sensor :input,
       configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      entity_constructor: -> (device, entity_name) { { unique_id: "#{device.unique_id}-input-#{entity_name[-1]}" } },
+      entity_constructor: -> (device, _entity_name) { { unique_id: "#{device.unique_id}-input" } },
       hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
       identifiers: -> (entity) { [entity.device.unique_id] },
       json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: ->(entity) { "input/#{entity.name[-1]}" },
+      listener_topics: [state: "status/input:0", state_adapter_method: :input_adapter_method],
       manufacturer: "#{Config::BLIGHVID}",
       model: DEVICE,
-      name: -> (entity) { "Input #{entity.unique_id[-1]}"},
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/input/#{entity.name[-1]}" }
-    sensor :output_energy,
+      name: 'Input',
+      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/input" }
+    sensor :energy,
       configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
       device_class: 'energy',
       entity_constructor: -> (device) { { unique_id: "#{device.unique_id}-energy", initial_value: 0.0 } },
       hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
       identifiers: -> (entity) { [entity.device.unique_id] },
       json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [{ state: 'light/0/energy', state_adapter_method: :integer_adapter }],
+      listener_topics: [state: "status/switch:0", state_adapter_method: :energy_adapter_method],
       manufacturer: "#{Config::BLIGHVID}",
       model: DEVICE,
-      name: "Energy",
-      number_type: :to_i,
+      name: 'Energy',
+      number_type: :to_f,
       state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/energy" },
       unit_of_measurement: 'Wh'
-    sensor :output_power,
+    sensor :power,
       configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
       device_class: 'power',
       entity_constructor: -> (device) { { unique_id: "#{device.unique_id}-power", initial_value: 0.0 } },
       hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
       identifiers: -> (entity) { [entity.device.unique_id] },
       json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [{ state: 'light/0/power', state_adapter_method: :float_adapter }],
+      listener_topics: [state: "status/switch:0", state_adapter_method: :power_adapter_method],
       manufacturer: "#{Config::BLIGHVID}",
       model: DEVICE,
       name: 'Power',
@@ -48,7 +48,7 @@ module Device
       hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
       identifiers: -> (entity) { [entity.device.unique_id] },
       json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [{ state: 'temperature', state_adapter_method: :float_adapter }],
+      listener_topics: [state: "status/switch:0", state_adapter_method: :temperature_adapter_method],
       manufacturer: "#{Config::BLIGHVID}",
       model: DEVICE,
       name: 'Temperature',
@@ -62,19 +62,28 @@ module Device
       hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
       identifiers: -> (entity) { [entity.device.unique_id] },
       json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [{ state: 'voltage', state_adapter_method: :float_adapter }],
+      listener_topics: [state: "status/switch:0", state_adapter_method: :voltage_adapter_method],
       manufacturer: "#{Config::BLIGHVID}",
       model: DEVICE,
       name: 'Voltage',
       number_type: :to_f,
       state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/voltage" },
       unit_of_measurement: 'V'
-
-    light :output,
-      brightness_scale: 100,
-      brightness_callback: :brightness_update_callback,
-      brightness_command_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/brightness-command" },
-      brightness_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/light/0/brightness" },
+    sensor :current,
+      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
+      device_class: 'current',
+      entity_constructor: -> (device) { { unique_id: "#{device.unique_id}-current", initial_value: 0.0 } },
+      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+      identifiers: -> (entity) { [entity.device.unique_id] },
+      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+      listener_topics: [state: "status/switch:0", state_adapter_method: :current_adapter_method],
+      manufacturer: "#{Config::BLIGHVID}",
+      model: DEVICE,
+      name: 'Current',
+      number_type: :to_f,
+      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/current" },
+      unit_of_measurement: 'A'
+    switch :output,
       callback: :state_update_callback,
       command_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/command" },
       configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
@@ -82,19 +91,17 @@ module Device
       hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
       identifiers: -> (entity) { [entity.device.unique_id] },
       json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [{ brightness: 'light/0/status', brightness_adapter_method: :brightness_adapt } , { state: 'light/0' }],
+      listener_topics: [state: "status/switch:0", state_adapter_method: :output_adapter_method],
       manufacturer: "#{Config::BLIGHVID}",
       model: DEVICE,
-      name: 'Light',
-      state_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/light/0" }
+      name: 'Output',
+      state_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/output" }
     
-    listener_topics 'info', update_method: :update_info
-
     def initialize(**options)
       assign!(options)
-      @announce_topic = "shellies/#{unique_id}/command"
-      @announce_payload = 'announce'
-      @announce_listen_topic = "shellies/#{unique_id}/info"
+      @announce_topic = generate_topic('command')
+      @announce_payload = 'status_update'
+      @announce_listen_topic = generate_topic('status')
       @announce_method_adapter = :announce_message_process
       @post_init_update_announce = :post_init
       init!(options)
@@ -102,8 +109,8 @@ module Device
 
     def announce_message_process(message)
       json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
-      @ip_address = json_message[:wifi_sta][:ip]
-      @device_id = json_message[:mac]
+      @ip_address = json_message[:wifi][:sta_ip]
+      @device_id = json_message[:sys][:mac]
     end
 
     def post_init(message)
@@ -112,38 +119,62 @@ module Device
 
     def update_info(message)
       json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
-      @ip_address = json_message[:wifi_sta][:ip]
-      @device_id = json_message[:mac]
-      @output.state = json_message[:lights][0][:ison]
-      @output.brightness = json_message[:lights][0][:brightness]
-      @input_0.state = json_message[:inputs][0][:input]
-      @input_1.state = json_message[:inputs][1][:input]
-      @temperature.state = json_message[:tmp][:tC]
+      @ip_address = json_message[:wifi][:sta_ip]
+      @device_id = json_message[:sys][:mac]
+      @output.state = json_message[:'switch:0'][:output]
+      @input.state = json_message[:'input:0'][:state]
+      @power.state = json_message[:'switch:0'][:apower]
+      @energy.state = json_message[:'switch:0'][:aenergy][:total]
+      @voltage.state = json_message[:'switch:0'][:voltage]
+      @current.state = json_message[:'switch:0'][:current]
+      @temperature.state = json_message[:'switch:0'][:temperature][:tC]
     end
 
     def post_state_update(entity_name)
-      http_client.update_light_state(@output.state&.downcase) if entity_name.to_s == 'Light'
+      http_client.update_output_state(@output.state&.downcase) if entity_name.to_s == 'Output'
     end
 
-    def post_brightness_update(entity_name)
-      http_client.update_brightness(@output.brightness) if entity_name.to_s == 'Light'
+    def input_adapter_method(message)
+      json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
+      json_message[:state]
+    end
+
+    def output_adapter_method(message)
+      json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
+      json_message[:output]
+    end
+
+    def temperature_adapter_method(message)
+      json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
+      json_message[:temperature][:tC]
+    end
+
+    def power_adapter_method(message)
+      json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
+      json_message[:apower]
+    end
+
+    def energy_adapter_method(message)
+      json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
+      json_message[:aenergy][:total]
+    end
+
+    def current_adapter_method(message)
+      json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
+      json_message[:current]
+    end
+
+    def voltage_adapter_method(message)
+      json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
+      json_message[:"voltage"]
     end
 
     def state_update_callback(message)
       message
     end
 
-    def brightness_update_callback(message)
-      message
-    end
-
     def http_client
-      @http_client ||= HttpClient::ShellyDimmer2.new(ip_address)
-    end
-
-    def brightness_adapt(message)
-      json_message = JSON.parse(message).deep_symbolize_keys
-      json_message[:brightness].to_i
+      @http_client ||= HttpClient::ShellyPlus1PM.new(ip_address)
     end
 
     def float_adapter(value)
