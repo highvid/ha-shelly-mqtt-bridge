@@ -55,20 +55,6 @@ module Device
       number_type: :to_f,
       state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/temperature" },
       unit_of_measurement: '°C'
-    sensor :voltage,
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      device_class: 'voltage',
-      entity_constructor: -> (device) { { unique_id: "#{device.unique_id}-voltage", initial_value: 0.0 } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [{ state: 'voltage', state_adapter_method: :float_adapter }],
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Voltage',
-      number_type: :to_f,
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/voltage" },
-      unit_of_measurement: 'V'
 
     light :output,
       brightness_scale: 100,
