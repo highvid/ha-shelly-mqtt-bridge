@@ -115,7 +115,7 @@ module Device
       @input_0.state = json_message[:inputs][0][:input]
       @input_1.state = json_message[:inputs][1][:input]
       @temperature.state = json_message[:tmp][:tC]
-      @voltage.state = json[:voltage]
+      @voltage.state = json_message[:voltage]
     end
 
     def float_adapter(value)
