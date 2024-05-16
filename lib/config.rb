@@ -27,8 +27,7 @@ class Config
     mqtt = info[:mqtt]
     @relay_mqtt = MQTT::Client.connect(Config.mqtt_info(mqtt[:relay]))
     @home_assistant_mqtt = MQTT::Client.connect(Config.mqtt_info(mqtt[:home_assistant]))
-    @device_info = info[:devices]
-    # @factory = Mqtt::TopicHandlerFactory.singleton
+    @device_info = info[:devices] || []
   end
 
   class << self

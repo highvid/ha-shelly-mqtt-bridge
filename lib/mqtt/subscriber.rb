@@ -5,9 +5,9 @@ module Mqtt
       ht = handler_topic_listeners
       hc = handler_command_listeners
       tputs "Subscribing to updates on relay mqtt topic #{Config.singleton.aggregated_topics.keys}"
-      Config.singleton.relay_mqtt.subscribe(Config.singleton.aggregated_topics.keys)
+      Config.singleton.relay_mqtt.subscribe(Config.singleton.aggregated_topics.keys) if Config.singleton.aggregated_topics.keys.present?
       tputs "Subscribing to updates on home assistant mqtt topic #{Config.singleton.aggregated_command_topics.keys}"
-      Config.singleton.home_assistant_mqtt.subscribe(Config.singleton.aggregated_command_topics.keys)
+      Config.singleton.home_assistant_mqtt.subscribe(Config.singleton.aggregated_command_topics.keys) if Config.singleton.aggregated_command_topics.keys.present?
       ht.join && hc.join
     end
 

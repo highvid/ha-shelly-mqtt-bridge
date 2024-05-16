@@ -4,6 +4,7 @@ require 'bundler'
 require 'active_support/all'
 
 Bundler.require(:default, :development)
+Dotenv.load('.env.local') if File.exist?('.env.local')
 
 def tputs(message)
   puts "#{Time.now}: #{message}"

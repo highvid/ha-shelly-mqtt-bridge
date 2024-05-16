@@ -10,12 +10,16 @@ mqtt:
     username: <%= ENV['RELAY_MQTT_USER'] %>
     password: <%= ENV['RELAY_MQTT_PASSWORD'] %>
 devices:
-  shelly_dimmer_2:
+  <% if ENV['SHELLY_DIMMER_2'].present? %>
+    shelly_dimmer_2:
     <% ENV['SHELLY_DIMMER_2'].split(',').uniq.each do |topic| %>
       - <%= topic %>
     <% end %>
+  <% end %>
 
-  shelly_2_5:
+  <% if ENV['SHELLY_2_5'].present? %>
+    shelly_2_5:
     <% ENV['SHELLY_2_5'].split(',').uniq.each do |topic| %>
       - <%= topic %>
     <% end %>
+  <% end %>
