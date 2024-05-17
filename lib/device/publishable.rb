@@ -76,13 +76,17 @@ module Device
       tputs "Subscribing for announcement on #{@announce_listen_topic} "
       client.subscribe(@announce_listen_topic)
       tputs "Publishing for announcement on #{@announce_topic} "
-      client.publish(@announce_topic, @announce_payload)
+      trigger_announce
       announcement.join
       tputs "Announcement received #{@announce_listen_topic}"
       client.unsubscribe(@announce_listen_topic)
       @announce_output = announcement[:output]
       tputs "Announcement output for #{self.unique_id} #{@announce_output}"
       send(@announce_method_adapter, @announce_output)
+    end
+
+    def trigger_announce(client: Client.singleton.relay_mqtt)
+      client.publish(@announce_topic, @announce_payload)
     end
 
     def force_publish_all!

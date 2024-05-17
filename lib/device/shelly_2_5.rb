@@ -116,6 +116,8 @@ module Device
       @input_1.state = json_message[:inputs][1][:input]
       @temperature.state = json_message[:tmp][:tC]
       @voltage.state = json_message[:voltage]
+      @power_0.state = json_message[:meters][0][:power]
+      @power_1.state = json_message[:meters][1][:power]
     end
 
     def float_adapter(value)
@@ -132,7 +134,10 @@ module Device
 
     def post_state_update(entity_name)
       relay = instance_variable_get("@relay_#{entity_name[-1]}")
-      http_client.update_relay_state(entity_name[-1], relay.state&.downcase) if %w[relay\ 0 relay\ 1].include?(entity_name.to_s.downcase)
+      if %w[relay\ 0 relay\ 1].include?(entity_name.to_s.downcase)
+        http_client.update_relay_state(entity_name[-1], relay.state&.downcase)
+        trigger_announce
+      end
     end
 
     def state_update_callback(message)
