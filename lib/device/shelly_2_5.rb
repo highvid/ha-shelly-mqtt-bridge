@@ -136,7 +136,7 @@ module Device
       relay = instance_variable_get("@relay_#{entity_name[-1]}")
       if %w[relay\ 0 relay\ 1].include?(entity_name.to_s.downcase)
         http_client.update_relay_state(entity_name[-1], relay.state&.downcase)
-        trigger_announce
+        trigger_announce if relay.state == 'on'
       end
     end
 
