@@ -85,7 +85,7 @@ module Device
       send(@announce_method_adapter, @announce_output)
     end
 
-    def trigger_announce(client: Client.singleton.relay_mqtt)
+    def trigger_announce(client: Config.singleton.relay_mqtt)
       client.publish(@announce_topic, @announce_payload)
     end
 
