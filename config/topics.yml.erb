@@ -30,3 +30,10 @@ devices:
       - <%= topic %>
     <% end %>
   <% end %>
+
+  <% if ENV['SHELLY_1'].present? %>
+    shelly_1:
+    <% ENV['SHELLY_1'].split(',').uniq.each do |topic| %>
+      - <%= topic %>
+    <% end %>
+  <% end %>
