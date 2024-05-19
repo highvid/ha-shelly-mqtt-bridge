@@ -42,7 +42,7 @@ module Mqtt
         Config.singleton.home_assistant_mqtt.get do |topic, message|
           tputs "Got command from topic #{topic} -> #{message}"
           if Config.singleton.aggregated_command_topics[topic].present?
-            handle(topic, Config.singleton.aggregated_command_topics[topic] || [], message)
+            handle(topic, Config.singleton.aggregated_command_topics[topic] || [], message, true)
           elsif topic == HOME_ASSISTANT_UPDATES_TOPIC
             @now_online = message == 'online'
             if @was_offline && @now_online
@@ -61,7 +61,7 @@ module Mqtt
       end
     end
 
-    def handle(topic, handlers, message)
+    def handle(topic, handlers, message, with_update = false)
       Thread.new do
         handlers.each do |handler|
           state_to_update = handler[:state]
@@ -72,8 +72,9 @@ module Mqtt
             adapted_info = handler[:device].send("#{handler[:device_adapter_method]}", message)
           end
           if handler[:entity]
-            tputs "Setting #{handler[:entity].name}'s #{state_to_update} to #{adapted_info}"
-            handler[:entity].send("#{state_to_update}=", adapted_info) if handler[:entity]
+            tputs "Setting #{handler[:entity].name}'s #{state_to_update}(w/#{with_update ? '' : 'o'} update) to #{adapted_info}"
+            method_name = with_update ? "#{state_to_update}_with_update=" : "#{state_to_update}="
+            handler[:entity].send(method_name, adapted_info) if handler[:entity]
           end
         end
 

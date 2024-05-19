@@ -23,6 +23,13 @@ module Entities
             new_value = self.class.sanitized_attributes.include?(attribute_name) ? send(options[:sanitize], value): value
             @has_changed = self.class.sensitive_attributes.include?(attribute_name) && attributes[attribute_name] != new_value && self.device.present? && self.device.initialized
             attributes[attribute_name] = new_value
+            post_attribute_publish(attribute_name) if @has_changed
+            new_value
+          end
+          send(Config.method_definition, :"#{attribute_name}_with_update=") do |value|
+            new_value = self.class.sanitized_attributes.include?(attribute_name) ? send(options[:sanitize], value): value
+            @has_changed = self.class.sensitive_attributes.include?(attribute_name) && attributes[attribute_name] != new_value && self.device.present? && self.device.initialized
+            attributes[attribute_name] = new_value
             post_attribute_update(attribute_name) if @has_changed
             new_value
           end
@@ -265,6 +272,10 @@ module Entities
         tputs "Updating state of #{attribute_name} using method #{entity_specific_attribute_update_method} on device for entity #{self.name}"
         device.send(device_specific_attribute_update_method, self.name)
       end
+      post_attribute_publish(attribute_name)
+    end
+
+    def post_attribute_publish(attribute_name)
       state_topic = "#{attribute_name}_topic"
       if self.respond_to?(state_topic) && device.initialized && config_published?
         topic_name = send(state_topic)
