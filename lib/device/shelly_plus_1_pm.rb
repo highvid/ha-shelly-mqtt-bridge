@@ -174,7 +174,7 @@ module Device
     end
 
     def http_client
-      @http_client ||= HttpClient::ShellyPlus1PM.new(ip_address)
+      @http_client ||= HttpClient::ShellyPlus1Pm.new(ip_address)
     end
 
     def float_adapter(value)

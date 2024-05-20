@@ -1,4 +1,5 @@
 require_relative 'http_clients/shelly_dimmer_2'
 require_relative 'http_clients/shelly_2_5'
-require_relative 'http_clients/shelly_plus_1_pm'
 require_relative 'http_clients/shelly_1'
+require_relative 'http_clients/shelly_1_pm'
+require_relative 'http_clients/shelly_plus_1_pm'
