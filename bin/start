@@ -12,6 +12,7 @@ def tputs(message)
   puts "----------------------------------------------"
 end
 
+require_relative '../lib/exts'
 require_relative '../lib/config'
 require_relative '../lib/self_healing_array'
 require_relative '../lib/self_healing_hash'

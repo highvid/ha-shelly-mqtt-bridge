@@ -7,5 +7,6 @@ gem 'faraday'
 gem 'mqtt'
 
 group :development, :test do
+  gem 'irb'
   gem 'pry'
 end

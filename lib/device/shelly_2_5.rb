@@ -24,8 +24,10 @@ module Device
       manufacturer: "#{Config::BLIGHVID}",
       model: DEVICE,
       name: -> (entity) { "Energy #{entity.unique_id[-1]}"},
-      number_type: :to_i,
+      number_type: :to_w_h,
+      state_class: 'total_increasing',
       state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/#{entity.unique_id[-1]}/energy" },
+      suggested_display_precision: 2,
       unit_of_measurement: 'Wh'
     sensor :power_0, :power_1,
       configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
@@ -40,6 +42,7 @@ module Device
       name: -> (entity) { "Power #{entity.unique_id[-1]}"},
       number_type: :to_f,
       state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/#{entity.unique_id[-1]}/power" },
+      suggested_display_precision: 2,
       unit_of_measurement: 'W'
     sensor :temperature,
       configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
@@ -54,6 +57,7 @@ module Device
       name: 'Temperature',
       number_type: :to_f,
       state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/temperature" },
+      suggested_display_precision: 2,
       unit_of_measurement: '°C'
     sensor :voltage,
       configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
@@ -68,6 +72,7 @@ module Device
       name: 'Voltage',
       number_type: :to_f,
       state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/voltage" },
+      suggested_display_precision: 2,
       unit_of_measurement: 'V'
 
     switch :relay_0, :relay_1,

@@ -37,8 +37,10 @@ module Device
       manufacturer: "#{Config::BLIGHVID}",
       model: DEVICE,
       name: 'Energy',
-      number_type: :to_i,
+      number_type: :to_w_h,
+      state_class: 'total_increasing',
       state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/energy" },
+      suggested_display_precision: 2,
       unit_of_measurement: 'Wh'
     sensor :power,
       configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
@@ -53,6 +55,7 @@ module Device
       name: 'Power',
       number_type: :to_f,
       state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/power" },
+      suggested_display_precision: 2,
       unit_of_measurement: 'W'
     sensor :temperature,
       configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
@@ -67,6 +70,7 @@ module Device
       name: 'Temperature',
       number_type: :to_f,
       state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/temperature" },
+      suggested_display_precision: 2,
       unit_of_measurement: '°C'
     
     def initialize(**options)
