@@ -10,37 +10,11 @@ mqtt:
     username: <%= ENV['RELAY_MQTT_USER'] %>
     password: <%= ENV['RELAY_MQTT_PASSWORD'] %>
 devices:
-  <% if ENV['SHELLY_DIMMER_2'].present? %>
-    shelly_dimmer_2:
-    <% ENV['SHELLY_DIMMER_2'].split(',').uniq.each do |topic| %>
+  <% %w[SHELLY_DIMMER_2 SHELLY_2_5 SHELLY_PLUS_1_PM SHELLY_1 SHELLY_1_PM].each do |type| %>
+    <% if ENV[type].present? %>
+      <%= type.to_s.downcase %>:
+      <% ENV[type].split(',').uniq.each do |topic| %>
       - <%= topic %>
-    <% end %>
-  <% end %>
-
-  <% if ENV['SHELLY_2_5'].present? %>
-    shelly_2_5:
-    <% ENV['SHELLY_2_5'].split(',').uniq.each do |topic| %>
-      - <%= topic %>
-    <% end %>
-  <% end %>
-
-  <% if ENV['SHELLY_PLUS_1_PM'].present? %>
-    shelly_plus_1_pm:
-    <% ENV['SHELLY_PLUS_1_PM'].split(',').uniq.each do |topic| %>
-      - <%= topic %>
-    <% end %>
-  <% end %>
-
-  <% if ENV['SHELLY_1'].present? %>
-    shelly_1:
-    <% ENV['SHELLY_1'].split(',').uniq.each do |topic| %>
-      - <%= topic %>
-    <% end %>
-  <% end %>
-
-  <% if ENV['SHELLY_1_PM'].present? %>
-    shelly_1_pm:
-    <% ENV['SHELLY_1_PM'].split(',').uniq.each do |topic| %>
-      - <%= topic %>
+      <% end %>
     <% end %>
   <% end %>

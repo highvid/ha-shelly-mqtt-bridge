@@ -28,7 +28,7 @@ module Device
       def method_missing(method_name, *names, **arguments, &block)
         class_name = method_name.to_s.singularize.camelize
         if Entities.constants.include?(class_name.to_sym)
-          tputs "Defining #{class_name}"
+          tputs "Defining #{class_name} for #{self.name}"
           names.each { |name| setup_entity(name, arguments.merge(class: Entities.const_get(class_name)), block) }
         elsif class_name == 'ListenerTopic'
           self.topic_hash ||= {}
