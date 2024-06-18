@@ -14,7 +14,6 @@ devices:
     <% if ENV[type].present? %>
       <%= type.to_s.downcase %>:
       <% ENV[type].split(',').uniq.each do |topic| %>
-      <% puts "TOPCI --- #{topic}" %>
       - <%= topic %>
       <% end %>
     <% end %>
