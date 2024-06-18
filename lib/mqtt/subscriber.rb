@@ -69,12 +69,13 @@ module Mqtt
           if handler[:entity_adapter_method].present?
             adapted_info = handler[:entity].send("#{handler[:entity_adapter_method]}", message)
           elsif handler[:device_adapter_method].present?
-            adapted_info = handler[:device].send("#{handler[:device_adapter_method]}", message)
+            method = handler[:device].method(handler[:device_adapter_method])
+            adapted_info = method.parameters.length == 1 ? handler[:device].send("#{handler[:device_adapter_method]}", message) : handler[:device].send("#{handler[:device_adapter_method]}", message, handler[:entity]) 
           end
           if handler[:entity]
             tputs "Setting #{handler[:entity].name}'s #{state_to_update}(w/#{with_update ? '' : 'o'} update) to #{adapted_info}"
             method_name = with_update ? "#{state_to_update}_with_update=" : "#{state_to_update}="
-            handler[:entity].send(method_name, adapted_info) if handler[:entity]
+            handler[:entity].send(method_name, adapted_info)
           end
         end
 

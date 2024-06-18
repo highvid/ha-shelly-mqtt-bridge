@@ -140,7 +140,7 @@ module Entities
 
     def setup_entity_listeners!
       @topic_hash = SelfHealingHash.new
-      @entity_listener_topic.map { |info| @topic_hash.safe_merge!(get_topics_from_attributes(info)) }
+      @entity_listener_topic.each { |info| @topic_hash.safe_merge!(get_topics_from_attributes(info)) }
     end
 
     #############################
