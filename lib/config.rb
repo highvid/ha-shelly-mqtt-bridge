@@ -2,7 +2,7 @@ require 'yaml'
 
 class Config
   BLIGHVID = 'blighvid'
-  attr_accessor :devices
+  attr_accessor :devices, :info
   attr_reader :device_info, :relay_mqtt, :home_assistant_mqtt
 
   def aggregated_topics
@@ -21,13 +21,19 @@ class Config
 
   private
 
-  def initialize(file_name: 'config/topics.yml.erb')
-    template = ERB.new File.new(file_name).read
-    info = YAML.load(template.result(binding)).deep_symbolize_keys
-    mqtt = info[:mqtt]
+  def load_info(file_name: 'config/topics.yml.erb')
+    if @info.blank?
+      template = ERB.new File.new(file_name).read
+      @info = YAML.load(template.result(binding)).deep_symbolize_keys
+    end
+  end
+
+  def initialize
+    load_info
+    mqtt = @info[:mqtt]
     @relay_mqtt = MQTT::Client.connect(Config.mqtt_info(mqtt[:relay]))
     @home_assistant_mqtt = MQTT::Client.connect(Config.mqtt_info(mqtt[:home_assistant]))
-    @device_info = info[:devices] || []
+    @device_info = @info[:devices] || []
   end
 
   class << self

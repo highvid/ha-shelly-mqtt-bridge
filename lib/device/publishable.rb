@@ -111,7 +111,7 @@ module Device
         derived_value = value.is_a?(Proc) ? value.call(entity) : value
         entity.send("#{key}=", derived_value)
       end
-      entity.json_attributes = { ip: @ip_address, device_id: @device_id, model: self.class::DEVICE, manufacturer: entity.manufacturer }
+      entity.json_attributes = { ip: @ip_address, device_id: @device_id, model: self.class::DEVICE, manufacturer: entity.manufacturer, friendly_unique_id: entity.unique_id }
 
       block.call(entity) if block.present?
       self.instance_variable_set("@#{entity_name}", entity)
