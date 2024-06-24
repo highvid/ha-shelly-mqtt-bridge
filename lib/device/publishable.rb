@@ -71,7 +71,7 @@ module Device
       rescue Timeout::Error
         tputs "Retrying publishing for announcement on #{@announce_topic} "
         client.publish(@announce_topic, @announce_payload)
-        retry
+        retry if Config.singleton.infinite_loop
       end
       tputs "Subscribing for announcement on #{@announce_listen_topic} "
       client.subscribe(@announce_listen_topic)
@@ -91,6 +91,10 @@ module Device
 
     def force_publish_all!
       entities.each { |entity| entity.force_publish_all! }
+    end
+
+    def publish_offline!
+      @entities.each(&:publish_offline!)
     end
 
     def initialize_entity(entity_hash)

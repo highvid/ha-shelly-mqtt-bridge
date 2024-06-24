@@ -11,13 +11,21 @@ module Mqtt
       tputs "Starting subscription..."
       ht = handler_topic_listeners
       hc = handler_command_listeners
-      tputs "Subscribing to updates on relay mqtt topic #{Config.singleton.aggregated_topics.keys}"
-      Config.singleton.relay_mqtt.subscribe(Config.singleton.aggregated_topics.keys) if Config.singleton.aggregated_topics.keys.present?
-      tputs "Subscribing to updates on home assistant mqtt topic #{Config.singleton.aggregated_command_topics.keys}"
-      Config.singleton.home_assistant_mqtt.subscribe(Config.singleton.aggregated_command_topics.keys) if Config.singleton.aggregated_command_topics.keys.present?
-      tputs "Subscribing to updates from homeassitant"
-      Config.singleton.home_assistant_mqtt.subscribe(HOME_ASSISTANT_UPDATES_TOPIC) if Config.singleton.aggregated_command_topics.keys.present?
-      ht.join && hc.join
+      begin
+        tputs "Subscribing to updates on relay mqtt topic #{Config.singleton.aggregated_topics.keys}"
+        Config.singleton.relay_mqtt.subscribe(Config.singleton.aggregated_topics.keys) if Config.singleton.aggregated_topics.keys.present?
+        tputs "Subscribing to updates on home assistant mqtt topic #{Config.singleton.aggregated_command_topics.keys}"
+        Config.singleton.home_assistant_mqtt.subscribe(Config.singleton.aggregated_command_topics.keys) if Config.singleton.aggregated_command_topics.keys.present?
+        tputs "Subscribing to updates from homeassitant"
+        Config.singleton.home_assistant_mqtt.subscribe(HOME_ASSISTANT_UPDATES_TOPIC) if Config.singleton.aggregated_command_topics.keys.present?
+        ht.join && hc.join
+      rescue SignalException
+        tputs "Attempting graceful shutdown"
+        Config.singleton.quit!
+        ht.kill && hc.kill
+        Config.join
+        Config.singleton.devices.each(&:publish_offline!)
+      end
     end
 
     def handler_topic_listeners
@@ -77,9 +85,6 @@ module Mqtt
             method_name = with_update ? "#{state_to_update}_with_update=" : "#{state_to_update}="
             handler[:entity].send(method_name, adapted_info)
           end
-        end
-
-        if topic == HOME_ASSISTANT_UPDATES_TOPIC
         end
       rescue => e
         tputs "Exception in handler for topic #{topic}: #{e.message}"

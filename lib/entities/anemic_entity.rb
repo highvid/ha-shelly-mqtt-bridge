@@ -5,6 +5,7 @@ module Entities
     included do
       attr_accessor :component, :command_topic_hash, :discovery_topic, :device, :name, :topic_hash
       attribute :device_name, in_state: true, aggregate_key: :device, renamed_key: :name
+      attribute :payload_topic, aggregate_key: :availability, renamed_key: :topic, in_state: true, publish_topic: true, publish_periodicity: 60, publish_method: :online!
     end
   
     class_methods do
@@ -93,6 +94,16 @@ module Entities
       end
     end
 
+    def publish_offline!
+      tputs "Marking #{unique_id} as offline"
+      Config.singleton.home_assistant_mqtt.publish(self.payload_topic, 'offline')
+    end
+
+    def online!
+      tputs "Publishing online for #{unique_id}"
+      'online'
+    end
+
     def add_entity_listener_topic(info)
       (@entity_listener_topic ||= [] ) << info
     end
@@ -132,6 +143,7 @@ module Entities
     def associate_device!(device)
       @device = device
       self.device_name = device.name
+      self.payload_topic = "blighvid/#{unique_id}/availability"
     end
 
     def setup_config_topic
