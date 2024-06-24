@@ -2,7 +2,7 @@ require 'yaml'
 
 class Config
   BLIGHVID = 'blighvid'
-  attr_accessor :devices, :info
+  attr_accessor :infinite_loop, :devices, :info
   attr_reader :device_info, :relay_mqtt, :home_assistant_mqtt
 
   def aggregated_topics
@@ -19,6 +19,10 @@ class Config
     @aggregated_command_topics
   end
 
+  def quit!
+    @infinite_loop = false
+  end
+
   private
 
   def load_info(file_name: 'config/topics.yml.erb')
@@ -29,6 +33,7 @@ class Config
   end
 
   def initialize
+    @infinite_loop = true
     load_info
     mqtt = @info[:mqtt]
     @relay_mqtt = MQTT::Client.connect(Config.mqtt_info(mqtt[:relay]))
@@ -37,7 +42,7 @@ class Config
   end
 
   class << self
-    attr_reader :singleton
+    attr_reader :singleton, :threads
 
     def init!
       @singleton = new
@@ -82,8 +87,9 @@ class Config
     end
 
     def threadize(periodicity, initialize_periodicity)
-      Thread.new do
-        while true do
+      @threads ||= []
+      @threads << Thread.new do
+        while Config.singleton.infinite_loop do
           result = yield
           sleep result ? periodicity :initialize_periodicity
         end
@@ -92,6 +98,11 @@ class Config
         tputs e.backtrace.join("\n")
         exit(1)
       end
+    end
+
+    def join
+      return if @threads.blank?
+      @threads.each(&:kill)
     end
   end
 end
