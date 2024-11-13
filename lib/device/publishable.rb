@@ -7,8 +7,12 @@ module Device
       @initialized
     end
 
+    def unitialized?
+      !initialized
+    end
+
     def entities
-      raise 'Device not initialized' unless initialized
+      raise 'Device not initialized' if unitialized?
       @entities
     end
 

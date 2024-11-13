@@ -4,7 +4,7 @@ require 'bundler'
 require 'active_support/all'
 require 'timeout'
 
-Bundler.require(:default, :development)
+Bundler.require(:default)
 Dotenv.load('.env.local') if File.exist?('.env.local')
 def log_level
   @log_level ||= ENV.fetch('LOG_LEVEL', '1').to_i
