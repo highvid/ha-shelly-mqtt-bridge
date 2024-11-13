@@ -26,6 +26,7 @@ module Device
       model: DEVICE,
       name: 'Output',
       state_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/output" }
+    listener_topics 'info', update_method: :update_info
     
     def initialize(**options)
       assign!(options)

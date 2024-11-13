@@ -107,7 +107,8 @@ module Device
       model: DEVICE,
       name: -> (entity) { "Output" },
       state_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/output" }
-    
+    listener_topics 'info', update_method: :update_info
+
     def initialize(**options)
       assign!(options)
       @announce_topic = generate_topic('command')
