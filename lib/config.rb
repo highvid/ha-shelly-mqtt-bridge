@@ -2,7 +2,7 @@ require 'yaml'
 
 class Config
   BLIGHVID = 'blighvid'
-  attr_accessor :infinite_loop, :devices, :info
+  attr_accessor :infinite_loop, :devices, :info, :logger
   attr_reader :device_info, :relay_mqtt, :home_assistant_mqtt
 
   def aggregated_topics
@@ -56,6 +56,8 @@ class Config
           )
         end
       end.flatten
+
+      @logger = Logger.new($stdout, level: ENV.fetch('LOG_LEVEL', 'INFO'))
     end
 
     def mqtt_info(info)

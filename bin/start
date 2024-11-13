@@ -7,15 +7,14 @@ require 'logger'
 
 Bundler.require(:default)
 Dotenv.load('.env.local') if File.exist?('.env.local')
-@logger = Logger.new($stdout, level: ENV.fetch('LOG_LEVEL', 'INFO'))
 
 def tputs(message, level: 1)
   if level == 1
-    @logger.info(message)
+    Config.singleton.logger.info(message)
   elsif level == 2
-    @logger.warn(message)
+    Config.singleton.logger.warn(message)
   else
-    @logger.error(message)
+    Config.singleton.logger.error(message)
   end
 end
 
