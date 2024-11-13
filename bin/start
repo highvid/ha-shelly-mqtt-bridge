@@ -7,6 +7,8 @@ require 'timeout'
 Bundler.require(:default)
 Dotenv.load('.env.local') if File.exist?('.env.local')
 def log_level
+  return @log_level if @log_level.present?
+  puts "MM: ALL ENVS === #{ENV['LOG_LEVEL']}"
   @log_level ||= ENV.fetch('LOG_LEVEL', '1').to_i
 end
 
