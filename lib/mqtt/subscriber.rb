@@ -15,6 +15,7 @@ module Mqtt
       ht = handler_topic_listeners
       hc = handler_command_listeners
       h_status_updates = handler_status_updates
+      h_post_init_updates = handler_post_init_updates
       begin
         tputs "Subscribing to updates on relay mqtt topic #{Config.singleton.aggregated_topics.keys}"
         Config.singleton.relay_mqtt.subscribe(Config.singleton.aggregated_topics.keys) if Config.singleton.aggregated_topics.keys.present?
@@ -22,7 +23,7 @@ module Mqtt
         Config.singleton.home_assistant_mqtt.subscribe(Config.singleton.aggregated_command_topics.keys) if Config.singleton.aggregated_command_topics.keys.present?
         tputs "Subscribing to updates from homeassitant"
         Config.singleton.home_assistant_mqtt.subscribe(HOME_ASSISTANT_UPDATES_TOPIC) if Config.singleton.aggregated_command_topics.keys.present?
-        ht.join && hc.join & h_status_updates.join
+        ht.join && hc.join && h_status_updates.join && h_post_init_updates
       rescue SignalException
         tputs "Attempting graceful shutdown"
         Config.singleton.quit!
@@ -101,6 +102,16 @@ module Mqtt
     def handler_status_updates
       Config.threadize(UPDATE_DELAY, UPDATE_DELAY) do
         UPDATE_COMMANDS.each { |update_command|  Config.singleton.relay_mqtt.publish(UPDATE_TOPIC, update_command) }
+      end
+    end
+
+    def handler_post_init_updates
+      Thread.new do
+        while Config.singleton.devices.any?(&:unitialized?)
+          tputs "Waiting for devices to be initialized", level: 2
+          sleep 10
+        end
+        tputs "All devices initialized", level: 2
       end
     end
   end
