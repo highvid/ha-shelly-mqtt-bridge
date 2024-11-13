@@ -11,7 +11,8 @@ module Mqtt
     end
 
     def subscribe!
-      tputs "Starting subscription...", level: 2
+      tputs "Starting subscription...", level: 3
+      tputs "Starting subscription..lev2.", level: 2
       ht = handler_topic_listeners
       hc = handler_command_listeners
       h_status_updates = handler_status_updates
@@ -23,7 +24,7 @@ module Mqtt
         Config.singleton.home_assistant_mqtt.subscribe(Config.singleton.aggregated_command_topics.keys) if Config.singleton.aggregated_command_topics.keys.present?
         tputs "Subscribing to updates from homeassitant"
         Config.singleton.home_assistant_mqtt.subscribe(HOME_ASSISTANT_UPDATES_TOPIC) if Config.singleton.aggregated_command_topics.keys.present?
-        ht.join && hc.join && h_status_updates.join && h_post_init_updates
+        ht.join && hc.join && h_status_updates.join && h_post_init_updates.join
       rescue SignalException
         tputs "Attempting graceful shutdown"
         Config.singleton.quit!
@@ -100,8 +101,11 @@ module Mqtt
     end
 
     def handler_status_updates
-      Config.threadize(UPDATE_DELAY, UPDATE_DELAY) do
-        UPDATE_COMMANDS.each { |update_command|  Config.singleton.relay_mqtt.publish(UPDATE_TOPIC, update_command) }
+      Thread.new do
+        while true
+          sleep UPDATE_DELAY
+          UPDATE_COMMANDS.each { |update_command|  Config.singleton.relay_mqtt.publish(UPDATE_TOPIC, update_command) }
+        end
       end
     end
 
