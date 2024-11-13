@@ -3,16 +3,20 @@
 require 'bundler'
 require 'active_support/all'
 require 'timeout'
+require 'logger'
 
 Bundler.require(:default)
 Dotenv.load('.env.local') if File.exist?('.env.local')
-def log_level
-  ENV.fetch('LOG_LEVEL', '1').to_i
-end
+@logger = Logger.new($stdout, level: ENV.fetch('LOG_LEVEL', 'INFO'))
 
 def tputs(message, level: 1)
-  puts "MM: COMPARIGIN LEVEL #{message} -- #{level.to_i.class} and #{log_level.class} #{level.to_i >= log_level}" if level.to_i == log_level
-  # puts "#{Time.now}: #{message}" if level.to_i >= log_level
+  if level == 1
+    @logger.info(message)
+  elsif level == 2
+    @logger.warn(message)
+  else
+    @logger.error(message)
+  end
 end
 
 require_relative '../lib/exts'
