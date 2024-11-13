@@ -12,6 +12,7 @@ module Mqtt
 
     def subscribe!
       $LOGGER.warn "Starting subscription..."
+      exit(1)
       ht = handler_topic_listeners
       hc = handler_command_listeners
       h_status_updates = handler_status_updates
