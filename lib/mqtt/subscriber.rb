@@ -48,7 +48,7 @@ module Mqtt
         $LOGGER.error "#{e.backtrace.join("\n")}"
         exit(1)
       end
-    en
+    end
 
     def handler_command_listeners
       Thread.new do
