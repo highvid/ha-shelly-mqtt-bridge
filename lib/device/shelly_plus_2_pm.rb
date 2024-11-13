@@ -102,6 +102,7 @@ module Device
       model: DEVICE,
       name: -> (entity) { "Output #{entity.unique_id[-1]}"},
       state_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/output/#{entity.name[-1]}" }
+    listener_topics 'status', update_method: :update_info
     
     def initialize(**options)
       assign!(options)

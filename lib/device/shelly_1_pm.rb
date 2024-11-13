@@ -72,6 +72,7 @@ module Device
       state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/temperature" },
       suggested_display_precision: 2,
       unit_of_measurement: '°C'
+    listener_topics 'info', update_method: :update_info
     
     def initialize(**options)
       assign!(options)

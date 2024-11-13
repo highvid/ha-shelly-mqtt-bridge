@@ -6,10 +6,12 @@ require 'timeout'
 
 Bundler.require(:default, :development)
 Dotenv.load('.env.local') if File.exist?('.env.local')
+def log_level
+  @log_level ||= ENV.fetch('LOG_LEVEL', '1').to_i
+end
 
-def tputs(message)
-  puts "#{Time.now}: #{message}"
-  puts "----------------------------------------------"
+def tputs(message, level: 1)
+  puts "#{Time.now}: #{message}" if level.to_i >= log_level
 end
 
 require_relative '../lib/exts'

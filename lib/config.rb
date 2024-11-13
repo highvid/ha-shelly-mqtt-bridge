@@ -94,8 +94,8 @@ class Config
           sleep result ? periodicity :initialize_periodicity
         end
       rescue => e
-        tputs "Exception: #{e.message}"
-        tputs e.backtrace.join("\n")
+        tputs "Exception: #{e.message}", level: 3
+        tputs e.backtrace.join("\n"), level: 3
         exit(1)
       end
     end

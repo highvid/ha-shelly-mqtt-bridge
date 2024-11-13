@@ -69,7 +69,7 @@ module Device
         _topic, message = Timeout.timeout(5) { client.get }
         Thread.current[:output]  = message
       rescue Timeout::Error
-        tputs "Retrying publishing for announcement on #{@announce_topic} "
+        tputs "Retrying publishing for announcement on #{@announce_topic}", level: 2
         client.publish(@announce_topic, @announce_payload)
         retry if Config.singleton.infinite_loop
       end
