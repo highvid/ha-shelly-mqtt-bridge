@@ -8,15 +8,6 @@ require 'logger'
 Bundler.require(:default)
 Dotenv.load('.env.local') if File.exist?('.env.local')
 $LOGGER = Logger.new($stdout, level: ENV.fetch('LOG_LEVEL', 'INFO'))
-def tputs(message, level: 1)
-  if level == 1
-    $LOGGER.info(message)
-  elsif level == 2
-    $LOGGER.warn(message)
-  else
-    $LOGGER.error(message)
-  end
-end
 
 require_relative '../lib/exts'
 require_relative '../lib/config'
