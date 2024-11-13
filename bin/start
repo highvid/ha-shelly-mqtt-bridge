@@ -13,6 +13,7 @@ def log_level
 end
 
 def tputs(message, level: 1)
+  puts "MM: COMPARIGIN LEVEL #{level.to_i} and #{log_level} #{level.to_i >= log_level}"
   puts "#{Time.now}: #{message}" if level.to_i >= log_level
 end
 
