@@ -7,21 +7,19 @@ require 'logger'
 
 Bundler.require(:default)
 Dotenv.load('.env.local') if File.exist?('.env.local')
-
+$LOGGER = Logger.new($stdout, level: ENV.fetch('LOG_LEVEL', 'INFO'))
 def tputs(message, level: 1)
   if level == 1
-    Config.singleton.logger.info(message)
+    $LOGGER.info(message)
   elsif level == 2
-    Config.singleton.logger.warn(message)
+    $LOGGER.warn(message)
   else
-    Config.singleton.logger.error(message)
+    $LOGGER.error(message)
   end
 end
 
 require_relative '../lib/exts'
 require_relative '../lib/config'
-Config.init!
-
 require_relative '../lib/self_healing_array'
 require_relative '../lib/self_healing_hash'
 require_relative '../lib/entities'
@@ -29,5 +27,6 @@ require_relative '../lib/devices'
 require_relative '../lib/mqtt'
 require_relative '../lib/http_clients'
 
+Config.init!
 mqtt = Mqtt::Subscriber.new
 mqtt.subscribe!
