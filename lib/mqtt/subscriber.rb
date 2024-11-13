@@ -11,7 +11,7 @@ module Mqtt
     end
 
     def subscribe!
-      tputs "Starting subscription..."
+      tputs "Starting subscription...", level: 2
       ht = handler_topic_listeners
       hc = handler_command_listeners
       h_status_updates = handler_status_updates
@@ -107,6 +107,7 @@ module Mqtt
 
     def handler_post_init_updates
       Thread.new do
+        puts "Starging checks"
         while Config.singleton.devices.any?(&:unitialized?)
           tputs "Waiting for devices to be initialized", level: 2
           sleep 10
