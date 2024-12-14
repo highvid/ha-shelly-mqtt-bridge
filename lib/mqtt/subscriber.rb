@@ -110,7 +110,7 @@ module Mqtt
 
     def handler_post_init_updates
       Thread.new do
-        puts "Starging checks"
+        puts "Starting checks"
         while Config.singleton.devices.any?(&:unitialized?)
           $LOGGER.warn "Waiting for devices to be initialized"
           sleep 10
