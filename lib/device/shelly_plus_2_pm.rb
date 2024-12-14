@@ -125,6 +125,7 @@ module Device
     end
 
     def update_info(message)
+      $LOGGER.warn "Update info #{name}"
       json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
       @ip_address = json_message[:wifi][:sta_ip]
       @device_id = json_message[:sys][:mac]

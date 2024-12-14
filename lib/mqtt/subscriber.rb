@@ -3,7 +3,7 @@ module Mqtt
     HOME_ASSISTANT_UPDATES_TOPIC = 'homeassistant/status'
     UPDATE_TOPIC = 'shellies/command'
     UPDATE_COMMANDS = %w[announce status_update]
-    UPDATE_DELAY = 900
+    UPDATE_DELAY = 600
 
     def initialize
       @was_offline = false
@@ -102,7 +102,8 @@ module Mqtt
       Thread.new do
         while true
           sleep UPDATE_DELAY
-          UPDATE_COMMANDS.each { |update_command|  Config.singleton.relay_mqtt.publish(UPDATE_TOPIC, update_command) }
+          $LOGGER.warn("Periodic fetching of status")
+          UPDATE_COMMANDS.each { |update_command| Config.singleton.relay_mqtt.publish(UPDATE_TOPIC, update_command) }
         end
       end
     end
