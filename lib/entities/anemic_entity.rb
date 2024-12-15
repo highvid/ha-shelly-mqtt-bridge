@@ -95,12 +95,12 @@ module Entities
     end
 
     def publish_offline!
-      $LOGGER.info "Marking #{unique_id} as offline"
+      $LOGGER.debug "Marking #{unique_id} as offline"
       Config.singleton.home_assistant_mqtt.publish(self.payload_topic, 'offline')
     end
 
     def online!
-      $LOGGER.info "Publishing online for #{unique_id}"
+      $LOGGER.debug "Publishing online for #{unique_id}"
       'online'
     end
 
@@ -234,13 +234,13 @@ module Entities
     end
 
     def force_publish_all!
-      $LOGGER.info "Force publishing on discovery topic #{@discovery_topic} for #{self.device.name}#"
+      $LOGGER.debug "Force publishing on discovery topic #{@discovery_topic} for #{self.device.name}#"
       Config.singleton.home_assistant_mqtt.publish(@discovery_topic, discovery_payload.to_json)
       self.class.publish_attributes.each do |attribute_name, info|
         topic_name = send(attribute_name)
         value = send(info[:method])
         value = value.to_json if value.is_a?(Hash)
-        $LOGGER.info "Force publishing on #{topic_name} for #{self.device.name}##{self.name}##{info[:method]} = #{value}"
+        $LOGGER.debug "Force publishing on #{topic_name} for #{self.device.name}##{self.name}##{info[:method]} = #{value}"
         Config.singleton.home_assistant_mqtt.publish(topic_name, value)
       end
     end
@@ -249,7 +249,7 @@ module Entities
       Config.threadize(900, 5) do
         if self.device.initialized
           topic_name = @discovery_topic
-          $LOGGER.info "Periodic publishing on discovery topic #{topic_name} for #{self.device.name}#"
+          $LOGGER.debug "Periodic publishing on discovery topic #{topic_name} for #{self.device.name}#"
           Config.singleton.home_assistant_mqtt.publish(topic_name, discovery_payload.to_json)
           @config_published = true
         else
@@ -258,12 +258,12 @@ module Entities
       end
       self.class.publish_attributes.each do |attribute_name, info|
         topic_name = send(attribute_name)
-        $LOGGER.info "Setting publisher for #{name} for attribute #{attribute_name} on topic #{topic_name}"
+        $LOGGER.debug "Setting publisher for #{name} for attribute #{attribute_name} on topic #{topic_name}"
         Config.threadize(info[:periodicity], 10) do
           if self.device.initialized && self.config_published?
             value = send(info[:method])
             value = value.to_json if value.is_a?(Hash)
-            $LOGGER.info "Periodic publishing on #{topic_name} for #{self.device.name}##{self.name}##{info[:method]} = #{value}"
+            $LOGGER.debug "Periodic publishing on #{topic_name} for #{self.device.name}##{self.name}##{info[:method]} = #{value}"
             Config.singleton.home_assistant_mqtt.publish(topic_name, value)
             true
           else
@@ -276,12 +276,12 @@ module Entities
     def post_attribute_update(attribute_name)
       entity_specific_attribute_update_method = "post_#{attribute_name}_update"
       if self.respond_to?(entity_specific_attribute_update_method)
-        $LOGGER.info "Updating state of #{attribute_name} using method #{entity_specific_attribute_update_method} on entity #{self.name}"
+        $LOGGER.debug "Updating state of #{attribute_name} using method #{entity_specific_attribute_update_method} on entity #{self.name}"
         send(entity_specific_attribute_update_method)
       end
       device_specific_attribute_update_method = entity_specific_attribute_update_method
       if self.device.respond_to?(device_specific_attribute_update_method)
-        $LOGGER.info "Updating state of #{attribute_name} using method #{entity_specific_attribute_update_method} on device for entity #{self.name}"
+        $LOGGER.debug "Updating state of #{attribute_name} using method #{entity_specific_attribute_update_method} on device for entity #{self.name}"
         device.send(device_specific_attribute_update_method, self.name)
       end
       post_attribute_publish(attribute_name)
@@ -292,7 +292,7 @@ module Entities
       if self.respond_to?(state_topic) && device.initialized && config_published?
         topic_name = send(state_topic)
         value = self.send(attribute_name)
-        $LOGGER.info "Publishging state(#{value}) update on #{topic_name}"
+        $LOGGER.debug "Publishging state(#{value}) update on #{topic_name}"
         Config.singleton.home_assistant_mqtt.publish(topic_name, value)
       end
     end
