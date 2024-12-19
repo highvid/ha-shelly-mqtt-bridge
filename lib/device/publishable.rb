@@ -62,7 +62,8 @@ module Device
 
       post_announce_actions = { }
       if @announce_topics.present?
-        post_announce_actions = post_announce_multiple_topics!.compact.to_h
+        reactions = announce_multiple_topics!
+        post_announce_actions = reactions.compact.to_h
       else
         message = announce_single_topic!
         post_announce_actions = { @post_announce_action => message } if @post_announce_action.present?
@@ -76,8 +77,8 @@ module Device
     end
 
     def announce_multiple_topics!
-      @announce_topics.map do |topic, meta|
-        meta.each do
+      @announce_topics.map do |topic, metas|
+        metas.map do |meta|
           output = announce_single_topic!(topic, meta[:payload], meta[:listen_topic], meta[:process])
           if meta[:post_process].present?
             [meta[:post_process], output]
