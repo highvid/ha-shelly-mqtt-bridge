@@ -120,11 +120,6 @@ module Device
           post_process: nil
         }]
       }
-      @announce_topic = generate_topic('command')
-      @announce_payload = 'status_update'
-      @announce_listen_topic = generate_topic('status')
-      @announce_method_adapter = :announce_message_process
-      @post_announce_action = :post_init
       init!(options)
     end
 
