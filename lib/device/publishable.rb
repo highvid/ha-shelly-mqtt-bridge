@@ -16,8 +16,8 @@ module Device
       @entities
     end
 
-    attr_reader :announce_topic, :announce_listen_topic, :announce_output, :announce_payload, :device_id, :ip_address,
-                :name, :post_init_update_announce, :topic, :topic_base, :topic_hash, :unique_id
+    attr_reader :announce_topic, :announce_topics, :announce_listen_topic, :announce_output, :announce_payload, :device_id, :ip_address,
+                :name, :post_announce_action, :topic, :topic_base, :topic_hash, :unique_id
 
     def publish_topic_prefix
       "blighvid/#{unique_id}"
@@ -60,37 +60,60 @@ module Device
     def init!(options = {})
       return if initialized
 
-      announce!
+      post_announce_actions = { }
+      if @announce_topics.present?
+        reactions = announce_multiple_topics!
+        post_announce_actions = reactions.compact.to_h
+      else
+        message = announce_single_topic!
+        post_announce_actions = { @post_announce_action => message } if @post_announce_action.present?
+      end
       @entities = self.class.entities.map { |entity| initialize_entity(entity.dup) }
       @entities.each { |entity| entity.initialize!(self) }
-      send(@post_init_update_announce, @announce_output) if post_init_update_announce.present?
+      post_announce_actions.each do |action, message|
+        send(action, message)
+      end
       @initialized = true
     end
 
-    def announce!
+    def announce_multiple_topics!
+      @announce_topics.map do |topic, metas|
+        metas.map do |meta|
+          output = announce_single_topic!(topic, meta[:payload], meta[:listen_topic], meta[:process])
+          if meta[:post_process].present?
+            [meta[:post_process], output]
+          else
+            nil
+          end
+        end
+      end.flatten(1)
+    end
+
+    def announce_single_topic!(topic_to_announce = @announce_topic, payload_to_announce = @announce_payload, listen_topic = @announce_listen_topic, announce_method_process = @announce_method_adapter)
       client = Config.singleton.relay_mqtt
       announcement = Thread.new do
         _topic, message = Timeout.timeout(5) { client.get }
-        Thread.current[:output]  = message
+        Thread.current[:output] = message
       rescue Timeout::Error
-        $LOGGER.info "Retrying publishing for announcement on #{@announce_topic}"
+        $LOGGER.info "Retrying publishing for announcement on #{topic_to_announce}"
         client.publish(@announce_topic, @announce_payload)
         retry if Config.singleton.infinite_loop
       end
-      $LOGGER.debug "Subscribing for announcement on #{@announce_listen_topic} "
-      client.subscribe(@announce_listen_topic)
-      $LOGGER.debug "Publishing for announcement on #{@announce_topic} "
-      trigger_announce
+      $LOGGER.debug "Subscribing for announcement on #{listen_topic} "
+      client.subscribe(listen_topic)
+      $LOGGER.debug "Publishing for announcement on #{topic_to_announce} "
+      trigger_announce(topic_to_announce:, payload_to_announce:)
       announcement.join
-      $LOGGER.debug "Announcement received #{@announce_listen_topic}"
-      client.unsubscribe(@announce_listen_topic)
-      @announce_output = announcement[:output]
-      $LOGGER.debug "Announcement output for #{self.unique_id} #{@announce_output}"
-      send(@announce_method_adapter, @announce_output)
+      $LOGGER.debug "Announcement received #{listen_topic}"
+      client.unsubscribe(listen_topic)
+      announce_output = announcement[:output]
+      $LOGGER.debug "Announcement output for #{self.unique_id} #{announce_output}"
+      send(announce_method_process, announce_output)
+      announce_output
     end
 
-    def trigger_announce(client: Config.singleton.relay_mqtt)
-      client.publish(@announce_topic, @announce_payload)
+    def trigger_announce(client: Config.singleton.relay_mqtt, topic_to_announce:, payload_to_announce:)
+      client.publish(topic_to_announce, payload_to_announce)
     end
 
     def force_publish_all!

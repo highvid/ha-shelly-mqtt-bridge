@@ -103,29 +103,40 @@ module Device
       name: 'Output',
       state_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/output" }
     
-    listener_topics 'status', update_method: :update_info
+    listener_topics 'status', update_method: :post_status_update
     
     def initialize(**options)
       assign!(options)
-      @announce_topic = generate_topic('command')
-      @announce_payload = 'status_update'
-      @announce_listen_topic = generate_topic('status')
-      @announce_method_adapter = :announce_message_process
-      @post_init_update_announce = :post_init
+      @announce_topics = {
+        generate_topic('command') => [{
+          listen_topic: generate_topic('status'),
+          payload: 'status_update',
+          process: :receive_status_message,
+          post_process: :post_status_update
+        }, {
+          listen_topic: generate_topic('announce'),
+          payload: 'announce',
+          process: :receive_announce,
+          post_process: nil
+        }]
+      }
       init!(options)
     end
 
-    def announce_message_process(message)
+    def receive_announce(message)
+      $LOGGER.info "Receive announce for #{name}"
+      json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
+      $LOGGER.info "Current version #{json_message[:ver]}"
+      # @version.state = json_message[:ver]
+    end
+
+    def receive_status_message(message)
       json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
       @ip_address = json_message[:wifi][:sta_ip]
       @device_id = json_message[:sys][:mac]
     end
 
-    def post_init(message)
-      update_info(message)
-    end
-
-    def update_info(message)
+    def post_status_update(message)
       $LOGGER.info "Update info #{name}"
       json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
       @ip_address = json_message[:wifi][:sta_ip]
@@ -175,7 +186,12 @@ module Device
 
     def voltage_adapter_method(message)
       json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
-      json_message[:"voltage"]
+      json_message[:voltage]
+    end
+
+    def sw_version_adapter(message)
+      json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
+      json_message[:ver]
     end
 
     def state_update_callback(message)
