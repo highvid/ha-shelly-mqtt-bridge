@@ -115,7 +115,7 @@ module Device
       @announce_payload = 'announce'
       @announce_listen_topic = generate_topic('info')
       @announce_method_adapter = :announce_message_process
-      @post_init_update_announce = :post_init
+      @post_announce_action = :post_init
       @raw_reactive_power_0 = 0.0
       @raw_reactive_power_1 = 0.0
       init!(options)

@@ -110,7 +110,7 @@ module Device
       @announce_payload = 'status_update'
       @announce_listen_topic = generate_topic('status')
       @announce_method_adapter = :announce_message_process
-      @post_init_update_announce = :post_init
+      @post_announce_action = :post_init
       init!(options)
     end
 
