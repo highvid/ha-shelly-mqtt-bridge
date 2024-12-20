@@ -14,7 +14,7 @@ module Entities
       {
         installed_version: value,
         latest_version:,
-        in_progress:,
+        in_progress: in_progress || false,
         update_percentage:
       }.to_json
     end
