@@ -165,8 +165,8 @@ module Device
       @current.state = json_message[:'switch:0'][:current]
       @temperature.state = json_message[:'switch:0'][:temperature][:tC]
       $LOGGER.info("Setting current version to #{@current_version}")
-      @sw_version.state = @current_version
       @sw_version.latest_version = json_message[:sys].try(:[], :available_updates).try(:[], :stable).try(:[], :version) || @current_version
+      @sw_version.state = @current_version
       $LOGGER.info("Setting latest version to #{@sw_version.latest_version}")
     end
 
