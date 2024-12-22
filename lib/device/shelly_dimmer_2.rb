@@ -159,7 +159,7 @@ module Device
     def sw_version_adapter(message)
       json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
       @sw_version.in_progress = %w[updating].include?(json_message[:update][:status])
-      @sw_version.update_percentage = @sw_version.in_prgoress ? 0.0 : nil
+      @sw_version.update_percentage = @sw_version.in_progress ? 0.0 : nil
       @sw_version.state
     end
 
