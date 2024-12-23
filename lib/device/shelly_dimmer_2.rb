@@ -125,7 +125,7 @@ module Device
       @input_0.state = json_message[:inputs][0][:input]
       @input_1.state = json_message[:inputs][1][:input]
       @temperature.state = json_message[:tmp][:tC]
-      $LOGGER.info("Setting current version to #{json_message[:update][:new_version]}")
+      $LOGGER.info("Setting current version to #{json_message[:update][:old_version]}")
       @sw_version.latest_version = json_message[:update][:new_version]
       @sw_version.state = json_message[:update][:old_version]
       $LOGGER.info("Setting latest version to #{@sw_version.latest_version}")
@@ -170,6 +170,10 @@ module Device
         @sw_version.in_progress = true
         @sw_version.update_percentage = 0.0
       end
+    end
+
+    def mqtt_client
+      Config.singleton.relay_mqtt
     end
 
     def float_adapter(value)
