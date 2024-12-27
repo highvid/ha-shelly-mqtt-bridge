@@ -126,7 +126,7 @@ module Device
     end
 
     def post_state_update(entity_name)
-      http_client.update_relay_state(@output.state&.downcase) if entity_name.to_s == 'Output'
+      client.update_relay_state(@output.state&.downcase) if entity_name.to_s == 'Output'
     end
 
     def sw_version_adapter(message)
@@ -153,8 +153,8 @@ module Device
       message
     end
 
-    def http_client
-      @http_client ||= HttpClient::Shelly1Pm.new(ip_address)
+    def client
+      @client ||= Mqtt::Clients::Shelly1Pm.new(mqtt_client, "shellies/#{unique_id}")
     end
 
     def float_adapter(value)

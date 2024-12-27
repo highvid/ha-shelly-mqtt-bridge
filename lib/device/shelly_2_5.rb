@@ -173,14 +173,14 @@ module Device
       value.to_i
     end
 
-    def http_client
-      @http_client ||= HttpClient::Shelly25.new(ip_address)
+    def client
+      @client ||= Mqtt::Clients::Shelly25.new(mqtt_client, "shellies/#{unique_id}")
     end
 
     def post_state_update(entity_name)
       relay = instance_variable_get("@relay_#{entity_name[-1]}")
       if %w[relay\ 0 relay\ 1].include?(entity_name.to_s.downcase)
-        http_client.update_relay_state(entity_name[-1], relay.state&.downcase)
+        client.update_relay_state(relay.state&.downcase, entity_name[-1])
       end
     end
 

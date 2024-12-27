@@ -97,11 +97,15 @@ module Device
     end
 
     def post_state_update(entity_name)
-      http_client.update_relay_state(@output.state&.downcase) if entity_name.to_s == 'Output'
+      client.update_relay_state(@output.state&.downcase) if entity_name.to_s == 'Output'
     end
 
     def state_update_callback(message)
       message
+    end
+
+    def client
+      @client ||= Mqtt::Clients::Shelly1.new(mqtt_client, "shellies/#{unique_id}")
     end
 
     def http_client
