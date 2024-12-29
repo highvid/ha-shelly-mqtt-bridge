@@ -169,7 +169,7 @@ module Device
     end
 
     def post_state_update(entity_name)
-      http_client.update_output_state(entity_name[-1], @output.state&.downcase) if %w[output].include?(entity_name.to_s.downcase)
+      client.update_relay_state(@output.state&.downcase) if %w[output].include?(entity_name.to_s.downcase)
     end
 
     def reactive_adapter_method_on_pf_change(message, entity)
@@ -210,8 +210,8 @@ module Device
       message
     end
 
-    def http_client
-      @http_client ||= HttpClient::ShellyPlus2Pm.new(ip_address)
+    def client
+      @client ||= Mqtt::Clients::ShellyEm.new(mqtt_client, "shellies/#{unique_id}")
     end
 
     def float_adapter(value)
