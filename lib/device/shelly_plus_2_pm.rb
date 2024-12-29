@@ -178,7 +178,7 @@ module Device
     def post_state_update(entity_name)
       output = instance_variable_get("@output_#{entity_name[-1]}")
       if %w[output\ 0 output\ 1].include?(entity_name.to_s.downcase)
-        http_client.update_output_state(entity_name[-1], output.state&.downcase)
+        client.update_relay_state(output.state&.downcase, entity_name[-1])
       end
     end
 
@@ -247,8 +247,8 @@ module Device
       @current_version
     end
 
-    def http_client
-      @http_client ||= HttpClient::ShellyPlus2Pm.new(ip_address)
+    def client
+      @client ||= Mqtt::Clients::ShellyPlus2Pm.new(mqtt_client, "shellies/#{unique_id}")
     end
 
     def mqtt_client

@@ -171,7 +171,7 @@ module Device
     end
 
     def post_state_update(entity_name)
-      http_client.update_output_state(@output.state&.downcase) if entity_name.to_s == 'Output'
+      client.update_relay_state(@output.state&.downcase) if entity_name.to_s == 'Output'
     end
 
     def input_adapter_method(message)
@@ -238,12 +238,12 @@ module Device
       @current_version
     end
 
-    def state_update_callback(message)
-      message
+    def client
+      @client ||= Mqtt::Clients::ShellyPlus1Pm.new(mqtt_client, "shellies/#{unique_id}")
     end
 
-    def http_client
-      @http_client ||= HttpClient::ShellyPlus1Pm.new(ip_address)
+    def state_update_callback(message)
+      message
     end
 
     def mqtt_client
