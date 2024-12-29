@@ -132,11 +132,11 @@ module Device
     end
 
     def post_state_update(entity_name)
-      http_client.update_light_state(@output.state&.downcase) if entity_name.to_s == 'Light'
+      client.update_light_state(@output.state&.downcase, @output.brightness) if entity_name.to_s == 'Light'
     end
 
     def post_brightness_update(entity_name)
-      http_client.update_brightness(@output.brightness) if entity_name.to_s == 'Light'
+      post_state_update(entity_name)
     end
 
     def state_update_callback(message)
@@ -147,8 +147,8 @@ module Device
       message
     end
 
-    def http_client
-      @http_client ||= HttpClient::ShellyDimmer2.new(ip_address)
+    def client
+      @client ||= Mqtt::Clients::ShellyDimmer2.new(mqtt_client, "shellies/#{unique_id}")
     end
 
     def brightness_adapt(message)
