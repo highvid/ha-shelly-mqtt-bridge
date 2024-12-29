@@ -17,7 +17,6 @@ require_relative '../lib/self_healing_hash'
 require_relative '../lib/entities'
 require_relative '../lib/devices'
 require_relative '../lib/mqtt'
-require_relative '../lib/http_clients'
 
 Config.init!
 mqtt = Mqtt::Subscriber.new

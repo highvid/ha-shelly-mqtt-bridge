@@ -108,10 +108,6 @@ module Device
       @client ||= Mqtt::Clients::Shelly1.new(mqtt_client, "shellies/#{unique_id}")
     end
 
-    def http_client
-      @http_client ||= HttpClient::Shelly1.new(ip_address)
-    end
-
     def float_adapter(value)
       value.to_f
     end
