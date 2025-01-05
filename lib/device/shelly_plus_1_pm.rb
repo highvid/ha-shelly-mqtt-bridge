@@ -141,7 +141,6 @@ module Device
     end
 
     def receive_announce(message)
-      $LOGGER.info "Receive announce for #{name}"
       json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
       @current_version = json_message[:ver]
     end
@@ -153,7 +152,7 @@ module Device
     end
 
     def post_status_update(message)
-      $LOGGER.info "Update info #{name}"
+      $LOGGER.debug "Update info #{name}"
       json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
       @ip_address = json_message[:wifi][:sta_ip]
       @device_id = json_message[:sys][:mac]
@@ -164,10 +163,10 @@ module Device
       @voltage.state = json_message[:'switch:0'][:voltage]
       @current.state = json_message[:'switch:0'][:current]
       @temperature.state = json_message[:'switch:0'][:temperature][:tC]
-      $LOGGER.info("Setting current version to #{@current_version}")
+      $LOGGER.debug("Setting current version to #{@current_version}")
       @sw_version.latest_version = json_message[:sys].try(:[], :available_updates).try(:[], :stable).try(:[], :version) || @current_version
       @sw_version.state = @current_version
-      $LOGGER.info("Setting latest version to #{@sw_version.latest_version}")
+      $LOGGER.debug("Setting latest version to #{@sw_version.latest_version}")
     end
 
     def post_state_update(entity_name)

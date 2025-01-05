@@ -102,7 +102,7 @@ module Mqtt
       Thread.new do
         while true
           sleep UPDATE_DELAY
-          $LOGGER.info("Periodic fetching of status")
+          $LOGGER.debug("Periodic fetching of status")
           UPDATE_COMMANDS.each { |update_command| Config.singleton.relay_mqtt.publish(UPDATE_TOPIC, update_command) }
         end
       end
@@ -110,7 +110,7 @@ module Mqtt
 
     def handler_post_init_updates
       Thread.new do
-        $LOGGER.info "Starting checks"
+        $LOGGER.debug "Starting checks"
         while Config.singleton.devices.any?(&:unitialized?)
           $LOGGER.info "Waiting for devices to be initialized"
           sleep 10
