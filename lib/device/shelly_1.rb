@@ -71,7 +71,7 @@ module Device
       @output.state = json_message[:relays][0][:ison]
       @input.state = json_message[:inputs][0][:input]
       $LOGGER.debug("Setting current version to #{json_message[:update][:old_version]}")
-      @sw_version.latest_version = json_message[:update][:new_version]
+      @sw_version.latest_version = json_message[:update][:new_version] if json_message[:update][:new_version].present?
       @sw_version.state = json_message[:update][:old_version]
       $LOGGER.debug("Setting latest version to #{@sw_version.latest_version}")
     end
