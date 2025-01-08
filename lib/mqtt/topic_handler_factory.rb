@@ -3,7 +3,7 @@ module Mqtt
     attr_reader :handlers
 
     def handle(topic:, message:)
-      handler = @handlers.find { |handler| self.class.handle?(handler.topic, topic) }
+      handler = @handlers.find { |handle| self.class.handle?(handle.topic, topic) }
       return unless handler.present?
 
       handler.process(topic:, message:) if self.class.handle?(handler.topic, topic)
