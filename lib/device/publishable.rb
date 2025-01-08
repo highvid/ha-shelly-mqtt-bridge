@@ -17,8 +17,8 @@ module Device
       @entities
     end
 
-    attr_reader :announce_topic, :announce_topics, :announce_listen_topic, :announce_output, :announce_payload, :device_id, :ip_address,
-                :name, :post_announce_action, :topic, :topic_base, :topic_hash, :unique_id
+    attr_reader :announce_topic, :announce_topics, :announce_listen_topic, :announce_output, :announce_payload,
+                :device_id, :ip_address, :name, :post_announce_action, :topic, :topic_base, :topic_hash, :unique_id
 
     def publish_topic_prefix
       "blighvid/#{unique_id}"
@@ -31,10 +31,18 @@ module Device
     class_methods do
       attr_accessor :entities, :topic_hash
 
+      def class_name_from_method(method_name)
+        method_name.to_s.singularize.camelize
+      end
+
+      def respond_to_missing?(method_name, include_private = false)
+        class_name = class_name_from_method(method_name)
+        Entities.constants.include?(class_name.to_sym) || class_name == 'ListenerTopic' || super
+      end
+
       def method_missing(method_name, *names, **arguments, &block)
-        class_name = method_name.to_s.singularize.camelize
+        class_name = class_name_from_method(method_name)
         if Entities.constants.include?(class_name.to_sym)
-          AppLogger.debug "Defining #{class_name} for #{name}"
           names.each { |name| setup_entity(name, arguments.merge(class: Entities.const_get(class_name)), block) }
         elsif class_name == 'ListenerTopic'
           self.topic_hash ||= {}
@@ -62,14 +70,7 @@ module Device
     def init!(_options = {})
       return if initialized
 
-      post_announce_actions = {}
-      if @announce_topics.present?
-        reactions = announce_multiple_topics!
-        post_announce_actions = reactions.compact.to_h
-      else
-        message = announce_single_topic!
-        post_announce_actions = { @post_announce_action => message } if @post_announce_action.present?
-      end
+      post_announce_actions = announce_multiple_topics!.compact.to_h
       @entities = self.class.entities.map { |entity| initialize_entity(entity.dup) }
       @entities.each { |entity| entity.initialize!(self) }
       post_announce_actions.each do |action, message|
