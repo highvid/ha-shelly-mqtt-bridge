@@ -14,7 +14,7 @@ module Publishables
     def method_missing(method_name, *names, **arguments, &block)
       class_name = class_name_from_method(method_name)
       if Entities.constants.include?(class_name.to_sym)
-        names.each { |name| setup_entity(name, arguments.merge(class: Entities.const_get(class_name)), block) }
+        names.each { |name| setup_entity(name, arguments.merge(klass: Entities.const_get(class_name)), block) }
       elsif class_name == 'ListenerTopic'
         self.topic_hash ||= {}
         self.topic_hash.merge!(names.uniq.to_h do |topic_name|

@@ -5,6 +5,7 @@ module Device
     def self.included(base)
       base.extend(Publishables::Entitiable)
       base.include(Publishables::Topicable)
+      base.include(Publishables::Helper)
     end
 
     def initialized
@@ -56,67 +57,69 @@ module Device
 
     def announce_single_topic!(topic:, payload:,
                                listen_topic:, announce_method_process:)
-      client = Config.singleton.relay_mqtt
-      announcement = Thread.new do
-        _topic, message = Timeout.timeout(5) { client.get }
-        Thread.current[:output] = message
-      rescue Timeout::Error
-        AppLogger.info "Retrying publishing for announcement on #{topic}"
-        client.publish(@announce_topic, @announce_payload)
-        retry if Config.singleton.infinite_loop
-      end
-      AppLogger.debug "Subscribing for announcement on #{listen_topic} "
-      client.subscribe(listen_topic)
-      AppLogger.debug "Publishing for announcement on #{topic} "
+      mqtt_client.subscribe(listen_topic)
       trigger_announce(topic:, payload:)
-      announcement.join
+      announcement_thread(topic, payload).join
       AppLogger.debug "Announcement received #{listen_topic}"
-      client.unsubscribe(listen_topic)
-      announce_output = announcement[:output]
-      AppLogger.debug "Announcement output for #{unique_id} #{announce_output}"
+      mqtt_client.unsubscribe(listen_topic)
+      announce_output = announcement_thread(topic, payload)[:output]
       send(announce_method_process, announce_output)
       announce_output
     end
 
-    def trigger_announce(topic:, payload:, client: Config.singleton.relay_mqtt)
-      client.publish(topic, payload)
+    def announcement_thread(topic, payload)
+      @announcement_threads ||= {}
+      return @announcement_threads[topic] if @announcement_threads[topic].present?
+
+      @announcement_threads[topic] = Thread.new do
+        _topic, message = Timeout.timeout(5) { mqtt_client.get }
+        Thread.current[:output] = message
+      rescue Timeout::Error
+        AppLogger.info "Retrying publishing for announcement on #{topic}"
+        trigger_announce(topic:, payload:)
+        retry if Config.singleton.infinite_loop
+      end
     end
 
-    def force_publish_all!
-      entities.each(&:force_publish_all!)
-    end
-
-    def publish_offline!
-      @entities.each(&:publish_offline!)
+    def trigger_announce(topic:, payload:)
+      mqtt_client.publish(topic, payload)
     end
 
     def initialize_entity(entity_hash)
-      entity_name = entity_hash.delete(:entity_name)
-      constructor = entity_hash.delete(:entity_constructor)
-      raise "Unknown constructor lambda provided for #{entity_name}" unless constructor.is_a?(Proc)
-
-      klass = entity_hash.delete(:class)
-      options = constructor.parameters.length == 2 ? constructor.call(self, entity_name) : constructor.call(self)
-      entity = klass.new(**options)
-      name = options.delete(:name)
-      entity.name = if name.present?
-                      name.is_a?(Proc) ? name.call(entity) : name
-                    else
-                      entity_name
-                    end
-      entity.device = self
-      block = entity_hash.delete(:block)
-
-      entity.add_entity_listener_topic(entity_hash.delete(:listener_topics))
-      entity_hash.each do |key, value|
-        derived_value = value.is_a?(Proc) ? value.call(entity) : value
-        entity.send("#{key}=", derived_value)
+      meta = {}
+      %i[entity_name entity_constructor klass listener_topics block name].each do |key|
+        meta[key] = entity_hash.delete(key)
       end
+      raise "Unknown constructor lambda provided for #{meta[:entity_name]}" unless meta[:entity_constructor].is_a?(Proc)
+
+      entity = initialize_entity_using(**meta.except(:block))
+      initialize_entity_params(entity, entity_hash)
+      initialize_json_attributes(entity)
+      initialize_block(entity, meta[:block])
+      instance_variable_set("@#{meta[:entity_name]}", entity)
+    end
+
+    def initialize_entity_params(entity, entity_hash)
+      entity_hash.each { |key, value| entity.send("#{key}=", safe_proc_execute(value, entity)) }
+    end
+
+    def initialize_block(entity, block)
+      block&.call(entity)
+    end
+
+    def initialize_entity_using(entity_name:, entity_constructor:, klass:, listener_topics:, name:)
+      options = options_from_contructor(entity_constructor, entity_name)
+      entity = klass.new(**options)
+      entity.name = name.present? ? safe_proc_execute(name, entity) : entity_name
+      entity.device = self
+
+      entity.add_entity_listener_topic(listener_topics)
+      entity
+    end
+
+    def initialize_json_attributes(entity)
       entity.json_attributes = { ip: @ip_address, device_id: @device_id, model: self.class::DEVICE,
                                  manufacturer: entity.manufacturer, friendly_unique_id: entity.unique_id }
-
-      block.call(entity) if block.present?
-      instance_variable_set("@#{entity_name}", entity)
     end
   end
 end
