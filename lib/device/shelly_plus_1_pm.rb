@@ -151,7 +151,7 @@ module Device
     end
 
     def post_status_update(message)
-      $LOGGER.debug "Update info #{name}"
+      AppLogger.debug "Update info #{name}"
       json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
       @ip_address = json_message[:wifi][:sta_ip]
       @device_id = json_message[:sys][:mac]
@@ -162,11 +162,11 @@ module Device
       @voltage.state = json_message[:'switch:0'][:voltage]
       @current.state = json_message[:'switch:0'][:current]
       @temperature.state = json_message[:'switch:0'][:temperature][:tC]
-      $LOGGER.debug("Setting current version to #{@current_version}")
+      AppLogger.debug("Setting current version to #{@current_version}")
       @sw_version.latest_version = json_message[:sys].try(:[], :available_updates).try(:[], :stable).try(:[],
                                                                                                          :version) || @current_version
       @sw_version.state = @current_version
-      $LOGGER.debug("Setting latest version to #{@sw_version.latest_version}")
+      AppLogger.debug("Setting latest version to #{@sw_version.latest_version}")
     end
 
     def post_state_update(entity_name)
@@ -230,7 +230,7 @@ module Device
 
     def call_to_update(message)
       if message == 'update'
-        $LOGGER.info "Updating #{name} to latest"
+        AppLogger.info "Updating #{name} to latest"
         mqtt_client.publish("shellies/#{unique_id}/command/sys", 'ota_update_to_stable')
         @sw_version.in_progress = true
         @sw_version.update_percentage = 0.0

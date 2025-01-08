@@ -34,7 +34,7 @@ module Device
       def method_missing(method_name, *names, **arguments, &block)
         class_name = method_name.to_s.singularize.camelize
         if Entities.constants.include?(class_name.to_sym)
-          $LOGGER.debug "Defining #{class_name} for #{name}"
+          AppLogger.debug "Defining #{class_name} for #{name}"
           names.each { |name| setup_entity(name, arguments.merge(class: Entities.const_get(class_name)), block) }
         elsif class_name == 'ListenerTopic'
           self.topic_hash ||= {}
@@ -94,19 +94,19 @@ module Device
         _topic, message = Timeout.timeout(5) { client.get }
         Thread.current[:output] = message
       rescue Timeout::Error
-        $LOGGER.info "Retrying publishing for announcement on #{topic_to_announce}"
+        AppLogger.info "Retrying publishing for announcement on #{topic_to_announce}"
         client.publish(@announce_topic, @announce_payload)
         retry if Config.singleton.infinite_loop
       end
-      $LOGGER.debug "Subscribing for announcement on #{listen_topic} "
+      AppLogger.debug "Subscribing for announcement on #{listen_topic} "
       client.subscribe(listen_topic)
-      $LOGGER.debug "Publishing for announcement on #{topic_to_announce} "
+      AppLogger.debug "Publishing for announcement on #{topic_to_announce} "
       trigger_announce(topic_to_announce:, payload_to_announce:)
       announcement.join
-      $LOGGER.debug "Announcement received #{listen_topic}"
+      AppLogger.debug "Announcement received #{listen_topic}"
       client.unsubscribe(listen_topic)
       announce_output = announcement[:output]
-      $LOGGER.debug "Announcement output for #{unique_id} #{announce_output}"
+      AppLogger.debug "Announcement output for #{unique_id} #{announce_output}"
       send(announce_method_process, announce_output)
       announce_output
     end

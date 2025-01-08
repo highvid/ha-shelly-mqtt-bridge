@@ -96,8 +96,8 @@ class Config
           sleep result ? periodicity : initialize_periodicity
         end
       rescue StandardError => e
-        $LOGGER.error "Exception: #{e.message}"
-        $LOGGER.error e.backtrace.join("\n")
+        AppLogger.error "Exception: #{e.message}"
+        AppLogger.error e.backtrace.join("\n")
         exit(1)
       end
     end

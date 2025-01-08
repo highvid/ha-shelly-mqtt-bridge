@@ -135,7 +135,7 @@ module Device
     end
 
     def update_info(message)
-      $LOGGER.debug "Update info #{name}"
+      AppLogger.debug "Update info #{name}"
       json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
       @ip_address = json_message[:wifi_sta][:ip]
       @device_id = json_message[:mac]
@@ -147,10 +147,10 @@ module Device
       @voltage.state = json_message[:voltage]
       @power_0.state = json_message[:meters][0][:power]
       @power_1.state = json_message[:meters][1][:power]
-      $LOGGER.debug("Setting current version to #{json_message[:update][:old_version]}")
+      AppLogger.debug("Setting current version to #{json_message[:update][:old_version]}")
       @sw_version.latest_version = json_message[:update][:new_version] if json_message[:update][:new_version].present?
       @sw_version.state = json_message[:update][:old_version]
-      $LOGGER.debug("Setting latest version to #{@sw_version.latest_version}")
+      AppLogger.debug("Setting latest version to #{@sw_version.latest_version}")
     end
 
     def sw_version_adapter(message)
@@ -163,7 +163,7 @@ module Device
     def call_to_update(message)
       return unless message == 'update'
 
-      $LOGGER.info "Updating #{name} to latest"
+      AppLogger.info "Updating #{name} to latest"
       mqtt_client.publish("shellies/#{unique_id}/command", 'update_fw')
       @sw_version.in_progress = true
       @sw_version.update_percentage = 0.0
