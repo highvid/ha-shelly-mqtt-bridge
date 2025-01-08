@@ -1,3 +1,5 @@
+require_relative 'device/publishables/entitiable'
+require_relative 'device/publishables/topicable'
 require_relative 'device/publishable'
 require_relative 'device/shelly_1'
 require_relative 'device/shelly_1_pm'
