@@ -1,49 +1,49 @@
 module Device
   class Shelly1
-    DEVICE = 'Shelly1'
+    DEVICE = 'Shelly1'.freeze
     include Publishable
     binary_sensor :input,
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      entity_constructor: -> (device, _entity_name) { { unique_id: "#{device.unique_id}-input" } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: 'input/0',
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Input',
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/input" }
+                  configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+                  entity_constructor: ->(device, _entity_name) { { unique_id: "#{device.unique_id}-input" } },
+                  hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+                  identifiers: ->(entity) { [entity.device.unique_id] },
+                  json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+                  listener_topics: 'input/0',
+                  manufacturer: Config::BLIGHVID.to_s,
+                  model: DEVICE,
+                  name: 'Input',
+                  state_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/input" }
     switch :output,
-      callback: :state_update_callback,
-      command_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/command" },
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-relay", initial_value: 'OFF' } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: 'relay/0',
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Output',
-      state_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/output" }
+           callback: :state_update_callback,
+           command_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/command" },
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-relay", initial_value: 'OFF' } },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: 'relay/0',
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: 'Output',
+           state_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/output" }
     update :sw_version,
-      callback: :call_to_update,
-      command_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/update" },
-      device_class: 'firmware',
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-sw-version", initial_value: nil  } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [ { state: 'info', state_adapter_method: :sw_version_adapter } ],
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Firmware',
-      payload_install: 'update',
-      platform: 'update',
-      state_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/firmware" }
+           callback: :call_to_update,
+           command_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/update" },
+           device_class: 'firmware',
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-sw-version", initial_value: nil } },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: [{ state: 'info', state_adapter_method: :sw_version_adapter }],
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: 'Firmware',
+           payload_install: 'update',
+           platform: 'update',
+           state_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/firmware" }
     listener_topics 'info', update_method: :update_info
-    
+
     def initialize(**options)
       assign!(options)
       @announce_topics = {
@@ -84,12 +84,12 @@ module Device
     end
 
     def call_to_update(message)
-      if message == 'update'
-        $LOGGER.info "Updating #{name} to latest"
-        mqtt_client.publish("shellies/#{unique_id}/command", 'update_fw')
-        @sw_version.in_progress = true
-        @sw_version.update_percentage = 0.0
-      end
+      return unless message == 'update'
+
+      $LOGGER.info "Updating #{name} to latest"
+      mqtt_client.publish("shellies/#{unique_id}/command", 'update_fw')
+      @sw_version.in_progress = true
+      @sw_version.update_percentage = 0.0
     end
 
     def mqtt_client

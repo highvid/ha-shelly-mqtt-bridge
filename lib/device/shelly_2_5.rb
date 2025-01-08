@@ -1,110 +1,118 @@
 module Device
   class Shelly25
     include Publishable
-    DEVICE = 'Shelly25'
+    DEVICE = 'Shelly25'.freeze
     binary_sensor :input_0, :input_1,
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      entity_constructor: -> (device, entity_name) { { unique_id: "#{device.unique_id}-input-#{entity_name[-1]}" } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: ->(entity) { "input/#{entity.name[-1]}" },
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: -> (entity) { "Input #{entity.unique_id[-1]}"},
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/input/#{entity.name[-1]}" }
+                  configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+                  entity_constructor: lambda { |device, entity_name|
+                    { unique_id: "#{device.unique_id}-input-#{entity_name[-1]}" }
+                  },
+                  hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+                  identifiers: ->(entity) { [entity.device.unique_id] },
+                  json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+                  listener_topics: ->(entity) { "input/#{entity.name[-1]}" },
+                  manufacturer: Config::BLIGHVID.to_s,
+                  model: DEVICE,
+                  name: ->(entity) { "Input #{entity.unique_id[-1]}" },
+                  state_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/input/#{entity.name[-1]}" }
     sensor :energy_0, :energy_1,
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      device_class: 'energy',
-      entity_constructor: -> (device, entity_name) { { unique_id: "#{device.unique_id}-energy-#{entity_name[-1]}", initial_value: 0.0 } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: ->(entity) { "relay/#{entity.name[-1]}/energy" },
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: -> (entity) { "Energy #{entity.unique_id[-1]}"},
-      number_type: :to_w_h,
-      state_class: 'total_increasing',
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/#{entity.unique_id[-1]}/energy" },
-      suggested_display_precision: 2,
-      unit_of_measurement: 'Wh'
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           device_class: 'energy',
+           entity_constructor: lambda { |device, entity_name|
+             { unique_id: "#{device.unique_id}-energy-#{entity_name[-1]}", initial_value: 0.0 }
+           },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: ->(entity) { "relay/#{entity.name[-1]}/energy" },
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: ->(entity) { "Energy #{entity.unique_id[-1]}" },
+           number_type: :to_w_h,
+           state_class: 'total_increasing',
+           state_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/#{entity.unique_id[-1]}/energy" },
+           suggested_display_precision: 2,
+           unit_of_measurement: 'Wh'
     sensor :power_0, :power_1,
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      device_class: 'power',
-      entity_constructor: -> (device, entity_name) { { unique_id: "#{device.unique_id}-power-#{entity_name[-1]}", initial_value: 0.0 } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: ->(entity) { "relay/#{entity.name[-1]}/power" },
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: -> (entity) { "Power #{entity.unique_id[-1]}"},
-      number_type: :to_f,
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/#{entity.unique_id[-1]}/power" },
-      suggested_display_precision: 2,
-      unit_of_measurement: 'W'
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           device_class: 'power',
+           entity_constructor: lambda { |device, entity_name|
+             { unique_id: "#{device.unique_id}-power-#{entity_name[-1]}", initial_value: 0.0 }
+           },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: ->(entity) { "relay/#{entity.name[-1]}/power" },
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: ->(entity) { "Power #{entity.unique_id[-1]}" },
+           number_type: :to_f,
+           state_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/#{entity.unique_id[-1]}/power" },
+           suggested_display_precision: 2,
+           unit_of_measurement: 'W'
     sensor :temperature,
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      device_class: 'temperature',
-      entity_constructor: -> (device) { { unique_id: "#{device.unique_id}-temperature", initial_value: 0.0 } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [{ state: 'temperature', state_adapter_method: :float_adapter }],
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Temperature',
-      number_type: :to_f,
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/temperature" },
-      suggested_display_precision: 2,
-      unit_of_measurement: '°C'
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           device_class: 'temperature',
+           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-temperature", initial_value: 0.0 } },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: [{ state: 'temperature', state_adapter_method: :float_adapter }],
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: 'Temperature',
+           number_type: :to_f,
+           state_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/temperature" },
+           suggested_display_precision: 2,
+           unit_of_measurement: '°C'
     sensor :voltage,
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      device_class: 'voltage',
-      entity_constructor: -> (device) { { unique_id: "#{device.unique_id}-voltage", initial_value: 0.0 } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [{ state: 'voltage', state_adapter_method: :float_adapter }],
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Voltage',
-      number_type: :to_f,
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/voltage" },
-      suggested_display_precision: 2,
-      unit_of_measurement: 'V'
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           device_class: 'voltage',
+           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-voltage", initial_value: 0.0 } },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: [{ state: 'voltage', state_adapter_method: :float_adapter }],
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: 'Voltage',
+           number_type: :to_f,
+           state_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/voltage" },
+           suggested_display_precision: 2,
+           unit_of_measurement: 'V'
 
     switch :relay_0, :relay_1,
-      callback: :state_update_callback,
-      command_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/command/#{entity.unique_id[-1]}" },
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      entity_constructor: ->(device, entity_name) { { unique_id: "#{device.unique_id}-relay-#{entity_name[-1]}", initial_value: 'OFF' } },
-      hw_version: "#{Config::BLIGHVID.capitalize}1.0",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: ->(entity) { "relay/#{entity.name[-1]}" },
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: -> (entity) { "Relay #{entity.unique_id[-1]}"},
-      state_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/relay/#{entity.unique_id[-1]}" }
-    
+           callback: :state_update_callback,
+           command_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/command/#{entity.unique_id[-1]}" },
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           entity_constructor: lambda { |device, entity_name|
+             { unique_id: "#{device.unique_id}-relay-#{entity_name[-1]}", initial_value: 'OFF' }
+           },
+           hw_version: "#{Config::BLIGHVID.capitalize}1.0",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: ->(entity) { "relay/#{entity.name[-1]}" },
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: ->(entity) { "Relay #{entity.unique_id[-1]}" },
+           state_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/relay/#{entity.unique_id[-1]}" }
+
     update :sw_version,
-      callback: :call_to_update,
-      command_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/update" },
-      device_class: 'firmware',
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-sw-version", initial_value: nil  } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [ { state: 'info', state_adapter_method: :sw_version_adapter } ],
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Firmware',
-      payload_install: 'update',
-      platform: 'update',
-      state_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/firmware" }
+           callback: :call_to_update,
+           command_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/update" },
+           device_class: 'firmware',
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-sw-version", initial_value: nil } },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: [{ state: 'info', state_adapter_method: :sw_version_adapter }],
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: 'Firmware',
+           payload_install: 'update',
+           platform: 'update',
+           state_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/firmware" }
     listener_topics 'info', update_method: :update_info
 
     def initialize(**options)
@@ -153,12 +161,12 @@ module Device
     end
 
     def call_to_update(message)
-      if message == 'update'
-        $LOGGER.info "Updating #{name} to latest"
-        mqtt_client.publish("shellies/#{unique_id}/command", 'update_fw')
-        @sw_version.in_progress = true
-        @sw_version.update_percentage = 0.0
-      end
+      return unless message == 'update'
+
+      $LOGGER.info "Updating #{name} to latest"
+      mqtt_client.publish("shellies/#{unique_id}/command", 'update_fw')
+      @sw_version.in_progress = true
+      @sw_version.update_percentage = 0.0
     end
 
     def mqtt_client
@@ -179,9 +187,9 @@ module Device
 
     def post_state_update(entity_name)
       relay = instance_variable_get("@relay_#{entity_name[-1]}")
-      if %w[relay\ 0 relay\ 1].include?(entity_name.to_s.downcase)
-        client.update_relay_state(relay.state&.downcase, entity_name[-1])
-      end
+      return unless ['relay 0', 'relay 1'].include?(entity_name.to_s.downcase)
+
+      client.update_relay_state(relay.state&.downcase, entity_name[-1])
     end
 
     def state_update_callback(message)

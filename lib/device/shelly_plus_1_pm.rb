@@ -1,127 +1,126 @@
 module Device
   class ShellyPlus1Pm
-    DEVICE = 'ShellyPlus1PM'
+    DEVICE = 'ShellyPlus1PM'.freeze
     include Publishable
     binary_sensor :input,
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      entity_constructor: -> (device, _entity_name) { { unique_id: "#{device.unique_id}-input" } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [state: "status/input:0", state_adapter_method: :input_adapter_method],
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Input',
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/input" }
+                  configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+                  entity_constructor: ->(device, _entity_name) { { unique_id: "#{device.unique_id}-input" } },
+                  hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+                  identifiers: ->(entity) { [entity.device.unique_id] },
+                  json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+                  listener_topics: [state: 'status/input:0', state_adapter_method: :input_adapter_method],
+                  manufacturer: Config::BLIGHVID.to_s,
+                  model: DEVICE,
+                  name: 'Input',
+                  state_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/input" }
     sensor :energy,
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      device_class: 'energy',
-      entity_constructor: -> (device) { { unique_id: "#{device.unique_id}-energy", initial_value: 0.0 } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [state: "status/switch:0", state_adapter_method: :energy_adapter_method],
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Energy',
-      number_type: :to_w_h,
-      state_class: 'total_increasing',
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/energy" },
-      suggested_display_precision: 2,
-      unit_of_measurement: 'Wh'
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           device_class: 'energy',
+           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-energy", initial_value: 0.0 } },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: [state: 'status/switch:0', state_adapter_method: :energy_adapter_method],
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: 'Energy',
+           number_type: :to_w_h,
+           state_class: 'total_increasing',
+           state_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/energy" },
+           suggested_display_precision: 2,
+           unit_of_measurement: 'Wh'
     sensor :power,
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      device_class: 'power',
-      entity_constructor: -> (device) { { unique_id: "#{device.unique_id}-power", initial_value: 0.0 } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [state: "status/switch:0", state_adapter_method: :power_adapter_method],
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Power',
-      number_type: :to_f,
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/power" },
-      suggested_display_precision: 2,
-      unit_of_measurement: 'W'
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           device_class: 'power',
+           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-power", initial_value: 0.0 } },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: [state: 'status/switch:0', state_adapter_method: :power_adapter_method],
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: 'Power',
+           number_type: :to_f,
+           state_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/power" },
+           suggested_display_precision: 2,
+           unit_of_measurement: 'W'
     sensor :temperature,
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      device_class: 'temperature',
-      entity_constructor: -> (device) { { unique_id: "#{device.unique_id}-temperature", initial_value: 0.0 } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [state: "status/switch:0", state_adapter_method: :temperature_adapter_method],
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Temperature',
-      number_type: :to_f,
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/temperature" },
-      suggested_display_precision: 2,
-      unit_of_measurement: '°C'
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           device_class: 'temperature',
+           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-temperature", initial_value: 0.0 } },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: [state: 'status/switch:0', state_adapter_method: :temperature_adapter_method],
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: 'Temperature',
+           number_type: :to_f,
+           state_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/temperature" },
+           suggested_display_precision: 2,
+           unit_of_measurement: '°C'
     sensor :voltage,
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      device_class: 'voltage',
-      entity_constructor: -> (device) { { unique_id: "#{device.unique_id}-voltage", initial_value: 0.0 } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [state: "status/switch:0", state_adapter_method: :voltage_adapter_method],
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Voltage',
-      number_type: :to_f,
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/voltage" },
-      suggested_display_precision: 2,
-      unit_of_measurement: 'V'
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           device_class: 'voltage',
+           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-voltage", initial_value: 0.0 } },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: [state: 'status/switch:0', state_adapter_method: :voltage_adapter_method],
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: 'Voltage',
+           number_type: :to_f,
+           state_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/voltage" },
+           suggested_display_precision: 2,
+           unit_of_measurement: 'V'
     sensor :current,
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      device_class: 'current',
-      entity_constructor: -> (device) { { unique_id: "#{device.unique_id}-current", initial_value: 0.0 } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [state: "status/switch:0", state_adapter_method: :current_adapter_method],
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Current',
-      number_type: :to_f,
-      state_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/current" },
-      suggested_display_precision: 2,
-      unit_of_measurement: 'A'
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           device_class: 'current',
+           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-current", initial_value: 0.0 } },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: [state: 'status/switch:0', state_adapter_method: :current_adapter_method],
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: 'Current',
+           number_type: :to_f,
+           state_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/current" },
+           suggested_display_precision: 2,
+           unit_of_measurement: 'A'
     switch :output,
-      callback: :state_update_callback,
-      command_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/command" },
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-light", initial_value: 'OFF' } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [state: "status/switch:0", state_adapter_method: :output_adapter_method],
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Output',
-      state_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/output" }
+           callback: :state_update_callback,
+           command_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/command" },
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-light", initial_value: 'OFF' } },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: [state: 'status/switch:0', state_adapter_method: :output_adapter_method],
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: 'Output',
+           state_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/output" }
     update :sw_version,
-      callback: :call_to_update,
-      command_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/update" },
-      device_class: 'firmware',
-      configuration_url: -> (entity) { "http://#{entity.device.ip_address}" },
-      entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-sw-version", initial_value: nil  } },
-      hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-      identifiers: -> (entity) { [entity.device.unique_id] },
-      json_attributes_topic: -> (entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-      listener_topics: [ { state: 'events/rpc', state_adapter_method: :sw_version_adapter } ],
-      manufacturer: "#{Config::BLIGHVID}",
-      model: DEVICE,
-      name: 'Firmware',
-      payload_install: 'update',
-      platform: 'update',
-      state_topic: -> (entity) { "#{entity.device.publish_topic_prefix}/firmware" }
+           callback: :call_to_update,
+           command_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/update" },
+           device_class: 'firmware',
+           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
+           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-sw-version", initial_value: nil } },
+           hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
+           identifiers: ->(entity) { [entity.device.unique_id] },
+           json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+           listener_topics: [{ state: 'events/rpc', state_adapter_method: :sw_version_adapter }],
+           manufacturer: Config::BLIGHVID.to_s,
+           model: DEVICE,
+           name: 'Firmware',
+           payload_install: 'update',
+           platform: 'update',
+           state_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/firmware" }
 
-    
     listener_topics 'status', update_method: :post_status_update
-    
+
     def initialize(**options)
       assign!(options)
       @announce_topics = {
@@ -164,7 +163,8 @@ module Device
       @current.state = json_message[:'switch:0'][:current]
       @temperature.state = json_message[:'switch:0'][:temperature][:tC]
       $LOGGER.debug("Setting current version to #{@current_version}")
-      @sw_version.latest_version = json_message[:sys].try(:[], :available_updates).try(:[], :stable).try(:[], :version) || @current_version
+      @sw_version.latest_version = json_message[:sys].try(:[], :available_updates).try(:[], :stable).try(:[],
+                                                                                                         :version) || @current_version
       @sw_version.state = @current_version
       $LOGGER.debug("Setting latest version to #{@sw_version.latest_version}")
     end
@@ -183,8 +183,7 @@ module Device
       json_message[:output]
     end
 
-    def status_adapter_method(message)
-    end
+    def status_adapter_method(message); end
 
     def temperature_adapter_method(message)
       json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
@@ -215,7 +214,9 @@ module Device
       json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
       if json_message[:method] == 'NotifyEvent'
         params = json_message[:params]
-        if params[:events].present? && params[:events].any? { |event| %w[ota_begin ota_progress ota_success].include?(event[:event]) }
+        if params[:events].present? && params[:events].any? do |event|
+          %w[ota_begin ota_progress ota_success].include?(event[:event])
+        end
           events = params[:events]
           events.each do |event|
             @sw_version.in_progress = %w[ota_begin ota_progress].include?(event[:event])

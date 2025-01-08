@@ -7,10 +7,10 @@ module Entities
       self.component ||= 'sensor'
       super
     end
-  
+
     def sanitize_value(value)
-      if value.present? && self.number_type.present?
-        value.send(self.number_type)
+      if value.present? && number_type.present?
+        value.send(number_type)
       else
         value
       end

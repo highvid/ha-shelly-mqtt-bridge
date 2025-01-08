@@ -9,4 +9,5 @@ gem 'mqtt'
 group :development, :test do
   gem 'irb'
   gem 'pry'
+  gem 'rubocop'
 end

@@ -1,8 +1,8 @@
 module Mqtt
   class Subscriber
-    HOME_ASSISTANT_UPDATES_TOPIC = 'homeassistant/status'
-    UPDATE_TOPIC = 'shellies/command'
-    UPDATE_COMMANDS = %w[announce status_update]
+    HOME_ASSISTANT_UPDATES_TOPIC = 'homeassistant/status'.freeze
+    UPDATE_TOPIC = 'shellies/command'.freeze
+    UPDATE_COMMANDS = %w[announce status_update].freeze
     UPDATE_DELAY = 600
 
     def initialize
@@ -17,14 +17,20 @@ module Mqtt
       h_post_init_updates = handler_post_init_updates
       begin
         $LOGGER.debug "Subscribing to updates on relay mqtt topic #{Config.singleton.aggregated_topics.keys}"
-        Config.singleton.relay_mqtt.subscribe(Config.singleton.aggregated_topics.keys) if Config.singleton.aggregated_topics.keys.present?
+        if Config.singleton.aggregated_topics.keys.present?
+          Config.singleton.relay_mqtt.subscribe(Config.singleton.aggregated_topics.keys)
+        end
         $LOGGER.debug "Subscribing to updates on home assistant mqtt topic #{Config.singleton.aggregated_command_topics.keys}"
-        Config.singleton.home_assistant_mqtt.subscribe(Config.singleton.aggregated_command_topics.keys) if Config.singleton.aggregated_command_topics.keys.present?
-        $LOGGER.debug "Subscribing to updates from homeassitant"
-        Config.singleton.home_assistant_mqtt.subscribe(HOME_ASSISTANT_UPDATES_TOPIC) if Config.singleton.aggregated_command_topics.keys.present?
+        if Config.singleton.aggregated_command_topics.keys.present?
+          Config.singleton.home_assistant_mqtt.subscribe(Config.singleton.aggregated_command_topics.keys)
+        end
+        $LOGGER.debug 'Subscribing to updates from homeassitant'
+        if Config.singleton.aggregated_command_topics.keys.present?
+          Config.singleton.home_assistant_mqtt.subscribe(HOME_ASSISTANT_UPDATES_TOPIC)
+        end
         ht.join && hc.join && h_status_updates.join && h_post_init_updates.join
       rescue SignalException
-        $LOGGER.warn "Attempting graceful shutdown"
+        $LOGGER.warn 'Attempting graceful shutdown'
         Config.singleton.quit!
         ht.kill && hc.kill
         Config.join
@@ -42,9 +48,9 @@ module Mqtt
             $LOGGER.warn "Unknown handler for #{topic}"
           end
         end
-      rescue => e
-        $LOGGER.error "#{e.message}"
-        $LOGGER.error "#{e.backtrace.join("\n")}"
+      rescue StandardError => e
+        $LOGGER.error e.message.to_s
+        $LOGGER.error e.backtrace.join("\n").to_s
         exit(1)
       end
     end
@@ -58,17 +64,17 @@ module Mqtt
           elsif topic == HOME_ASSISTANT_UPDATES_TOPIC
             @now_online = message == 'online'
             if @was_offline && @now_online
-              $LOGGER.debug "Force updating all devices"
-              Config.singleton.devices.each { |device| device.force_publish_all! }
+              $LOGGER.debug 'Force updating all devices'
+              Config.singleton.devices.each(&:force_publish_all!)
             end
             @was_offline = message == 'offline'
           else
             $LOGGER.warn "Unknown command handler for #{topic}"
           end
         end
-      rescue => e
+      rescue StandardError => e
         $LOGGER.error "Exception in relay listener: #{e.message}"
-        $LOGGER.error "#{e.backtrace.join("\n")}"
+        $LOGGER.error e.backtrace.join("\n").to_s
         exit(1)
       end
     end
@@ -79,30 +85,37 @@ module Mqtt
           state_to_update = handler[:state]
           adapted_info = message
           if handler[:entity_adapter_method].present?
-            adapted_info = handler[:entity].send("#{handler[:entity_adapter_method]}", message)
+            adapted_info = handler[:entity].send((handler[:entity_adapter_method]).to_s, message)
           elsif handler[:device_adapter_method].present?
             method = handler[:device].method(handler[:device_adapter_method])
-            adapted_info = method.parameters.length == 1 ? handler[:device].send("#{handler[:device_adapter_method]}", message) : handler[:device].send("#{handler[:device_adapter_method]}", message, handler[:entity]) 
+            adapted_info = if method.parameters.length == 1
+                             handler[:device].send((handler[:device_adapter_method]).to_s,
+                                                   message)
+                           else
+                             handler[:device].send(
+                               (handler[:device_adapter_method]).to_s, message, handler[:entity]
+                             )
+                           end
           end
-          if handler[:entity]
-            $LOGGER.debug "Setting #{handler[:entity].name}'s #{state_to_update}(w/#{with_update ? '' : 'o'} update) to #{adapted_info}"
-            method_name = with_update ? "#{state_to_update}_with_update=" : "#{state_to_update}="
-            handler[:entity].send(method_name, adapted_info)
-          end
+          next unless handler[:entity]
+
+          $LOGGER.debug "Setting #{handler[:entity].name}'s #{state_to_update}(w/#{with_update ? '' : 'o'} update) to #{adapted_info}"
+          method_name = with_update ? "#{state_to_update}_with_update=" : "#{state_to_update}="
+          handler[:entity].send(method_name, adapted_info)
         end
-      rescue => e
+      rescue StandardError => e
         $LOGGER.error "Exception in handler for topic #{topic}: #{e.message}"
         $LOGGER.error "The handler info -> #{handlers}"
-        $LOGGER.error "#{e.backtrace.join("\n")}"
+        $LOGGER.error e.backtrace.join("\n").to_s
         exit(1)
       end
     end
 
     def handler_status_updates
       Thread.new do
-        while true
+        loop do
           sleep UPDATE_DELAY
-          $LOGGER.debug("Periodic fetching of status")
+          $LOGGER.debug('Periodic fetching of status')
           UPDATE_COMMANDS.each { |update_command| Config.singleton.relay_mqtt.publish(UPDATE_TOPIC, update_command) }
         end
       end
@@ -110,12 +123,12 @@ module Mqtt
 
     def handler_post_init_updates
       Thread.new do
-        $LOGGER.debug "Starting checks"
+        $LOGGER.debug 'Starting checks'
         while Config.singleton.devices.any?(&:unitialized?)
-          $LOGGER.info "Waiting for devices to be initialized"
+          $LOGGER.info 'Waiting for devices to be initialized'
           sleep 10
         end
-        $LOGGER.info "All devices initialized"
+        $LOGGER.info 'All devices initialized'
       end
     end
   end
