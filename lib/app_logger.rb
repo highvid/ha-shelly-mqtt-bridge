@@ -12,5 +12,9 @@ class AppLogger
 
       @app_logger = Logger.new($stdout, level: ENV.fetch('LOG_LEVEL', 'info').downcase.to_sym)
     end
+
+    def exception(e, context: 'ERR')
+      @app_logger.error("#{context}\n#{e.message}\n#{e.backtrace.join("\n")}")
+    end
   end
 end

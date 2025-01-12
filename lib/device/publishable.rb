@@ -36,11 +36,10 @@ module Device
       return if initialized
 
       post_announce_actions = announce_multiple_topics!.compact.to_h
-      @entities = self.class.entities.map { |entity| initialize_entity(entity.dup) }
-      @entities.each { |entity| entity.initialize!(self) }
-      post_announce_actions.each do |action, message|
-        send(action, message)
-      end
+      @entities = self.class.entities
+                      .map { |entity| initialize_entity(entity.dup) }
+                      .each { |entity| entity.initialize!(self) }
+      post_announce_actions.each { |action, message| send(action, message) }
       @initialized = true
     end
 
@@ -55,27 +54,27 @@ module Device
       end.flatten(1)
     end
 
-    def announce_single_topic!(topic:, payload:,
-                               listen_topic:, announce_method_process:)
+    def announce_single_topic!(topic:, payload:, listen_topic:, announce_method_process:)
       mqtt_client.subscribe(listen_topic)
       trigger_announce(topic:, payload:)
-      announcement_thread(topic, payload).join
-      AppLogger.debug "Announcement received #{listen_topic}"
+      thread = announcement_thread(topic, payload)
+      thread.join
       mqtt_client.unsubscribe(listen_topic)
-      announce_output = announcement_thread(topic, payload)[:output]
+      announce_output = thread[:output]
       send(announce_method_process, announce_output)
       announce_output
     end
 
     def announcement_thread(topic, payload)
       @announcement_threads ||= {}
-      return @announcement_threads[topic] if @announcement_threads[topic].present?
+      topic_payload = "#{topic}-#{payload}"
+      return @announcement_threads[topic_payload] if @announcement_threads[topic_payload].present?
 
-      @announcement_threads[topic] = Thread.new do
+      @announcement_threads[topic_payload] = Thread.new do
         _topic, message = Timeout.timeout(5) { mqtt_client.get }
         Thread.current[:output] = message
       rescue Timeout::Error
-        AppLogger.info "Retrying publishing for announcement on #{topic}"
+        AppLogger.warn "Retrying publishing for announcement on #{topic} and payload #{payload}"
         trigger_announce(topic:, payload:)
         retry if Config.singleton.infinite_loop
       end
@@ -85,22 +84,20 @@ module Device
       mqtt_client.publish(topic, payload)
     end
 
-    def initialize_entity(entity_hash)
+    def initialize_entity(hash)
       meta = {}
-      %i[entity_name entity_constructor klass listener_topics block name].each do |key|
-        meta[key] = entity_hash.delete(key)
-      end
+      %i[entity_name entity_constructor klass listener_topics block name].each { |key| meta[key] = hash.delete(key) }
       raise "Unknown constructor lambda provided for #{meta[:entity_name]}" unless meta[:entity_constructor].is_a?(Proc)
 
       entity = initialize_entity_using(**meta.except(:block))
-      initialize_entity_params(entity, entity_hash)
+      initialize_entity_params(entity, hash)
       initialize_json_attributes(entity)
       initialize_block(entity, meta[:block])
       instance_variable_set("@#{meta[:entity_name]}", entity)
     end
 
-    def initialize_entity_params(entity, entity_hash)
-      entity_hash.each { |key, value| entity.send("#{key}=", safe_proc_execute(value, entity)) }
+    def initialize_entity_params(entity, hash)
+      hash.each { |key, value| entity.send("#{key}=", safe_proc_execute(value, entity)) }
     end
 
     def initialize_block(entity, block)
@@ -120,6 +117,10 @@ module Device
     def initialize_json_attributes(entity)
       entity.json_attributes = { ip: @ip_address, device_id: @device_id, model: self.class::DEVICE,
                                  manufacturer: entity.manufacturer, friendly_unique_id: entity.unique_id }
+    end
+
+    def hashified_message(message)
+      message.is_a?(Hash) ? message.deep_symbolize_keys : JSON.parse(message).deep_symbolize_keys
     end
   end
 end

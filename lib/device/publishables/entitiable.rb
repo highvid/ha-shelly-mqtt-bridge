@@ -26,7 +26,12 @@ module Publishables
     end
 
     def setup_entity(entity_name, arguments, block)
+      self.entities = superclass.entities.dup if entities_inheritance?
       (self.entities ||= []) << { entity_name:, block:, **arguments }
+    end
+
+    def entities_inheritance?
+      entities.blank? && superclass.respond_to?(:entities) && superclass.entities.is_a?(Array)
     end
   end
 end

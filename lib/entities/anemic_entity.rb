@@ -143,6 +143,7 @@ module Entities
     end
 
     def initialize!(device)
+      AppLogger.info "Initialising #{unique_id} for device #{device.name}"
       associate_device!(device)
       setup_entity_listeners!
       setup_command_listeners!

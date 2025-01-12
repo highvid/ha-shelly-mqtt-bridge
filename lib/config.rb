@@ -96,8 +96,7 @@ class Config
           sleep result ? periodicity : initialize_periodicity
         end
       rescue StandardError => e
-        AppLogger.error "Exception: #{e.message}"
-        AppLogger.error e.backtrace.join("\n")
+        AppLogger.exception(e)
         exit(1)
       end
     end

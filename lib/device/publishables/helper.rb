@@ -19,5 +19,18 @@ module Publishables
     def publish_offline!
       entities.each(&:publish_offline!)
     end
+
+    def float_adapter(value)
+      value.to_f
+    end
+
+    def integer_adapter(value)
+      value.to_i
+    end
+
+    def publish_client
+      @publish_client ||= Mqtt::Clients.const_get(self.class.to_s.split('::').last)
+                                       .new(mqtt_client, "shellies/#{unique_id}")
+    end
   end
 end

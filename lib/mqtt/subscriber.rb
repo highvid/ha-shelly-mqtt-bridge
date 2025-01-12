@@ -49,8 +49,7 @@ module Mqtt
           end
         end
       rescue StandardError => e
-        AppLogger.error e.message.to_s
-        AppLogger.error e.backtrace.join("\n").to_s
+        AppLogger.exception(e)
         exit(1)
       end
     end
@@ -73,8 +72,7 @@ module Mqtt
           end
         end
       rescue StandardError => e
-        AppLogger.error "Exception in relay listener: #{e.message}"
-        AppLogger.error e.backtrace.join("\n").to_s
+        AppLogger.exception(e, context: 'Exception in relay listener')
         exit(1)
       end
     end
@@ -104,9 +102,7 @@ module Mqtt
           handler[:entity].send(method_name, adapted_info)
         end
       rescue StandardError => e
-        AppLogger.error "Exception in handler for topic #{topic}: #{e.message}"
-        AppLogger.error "The handler info -> #{handlers}"
-        AppLogger.error e.backtrace.join("\n").to_s
+        AppLogger.exception(e, context: "Exception in handler for topic #{topic}")
         exit(1)
       end
     end
