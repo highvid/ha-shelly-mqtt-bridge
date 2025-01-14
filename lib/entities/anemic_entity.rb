@@ -36,8 +36,7 @@ module Entities
           end
           send(Config.method_definition, :"#{attribute_name}_with_update=") do |value|
             new_value = if self.class.sanitized_attributes.include?(attribute_name)
-                          send(options[:sanitize],
-                               value)
+                          send(options[:sanitize], value)
                         else
                           value
                         end

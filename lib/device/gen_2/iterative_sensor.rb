@@ -6,19 +6,26 @@ module Device
       class_methods do
         attr_reader :sensor_array
 
-        def define_sensors(sensor_type, count, sensor_klass: :sensor)
+        def define_sensors(type, count, sensor_klass: :sensor)
           @sensor_array ||= {}
-          gen_klass = Device::Gen2.const_get("#{sensor_type.to_s.camelize}Sensor")
-          if count == 1
-            (@sensor_array[gen_klass] ||= []) << sensor_type
-          else
-            (0..(count - 1)).each { |index| (@sensor_array[gen_klass] ||= []) << "#{sensor_type}_#{index}" }
+          gen_klass = Device::Gen2.const_get("#{type.to_s.camelize}Sensor")
+          @sensor_array[gen_klass] = count == 1 ? [type] : (0..(count - 1)).map { |index| "#{type}_#{index}" }
+          define_sensor_using(sensor_klass, gen_klass, *@sensor_array[gen_klass])
+          prepend gen_klass
+        end
+
+        private
+
+        def define_sensor_using(klass, gen_klass, *names)
+          names.each_with_index do |name, index|
+            send(klass, name, **generate_options(gen_klass::SENSOR_OPTIONS, index, only_one: names.length == 1))
           end
-          send(sensor_klass, *@sensor_array[gen_klass],
-               **gen_klass::SENSOR_OPTIONS.call(self::DEVICE, self::MANUFACTURER))
-          class_eval do
-            prepend gen_klass
-          end
+        end
+
+        def generate_options(sensor_options, index, only_one: false)
+          options = sensor_options.call(self::DEVICE, self::MANUFACTURER, index)
+          options[:name] += " #{index}" unless only_one
+          options
         end
       end
 

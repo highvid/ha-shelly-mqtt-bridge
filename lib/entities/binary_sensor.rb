@@ -28,17 +28,9 @@ module Entities
 
     protected
 
-    def is_postive?(value)
+    def postive?(value)
       if value.is_a?(String)
-        if %w[0 1].include?(value)
-          value == '1'
-        elsif %w[true false].include?(value.downcase)
-          value.downcase == 'true'
-        elsif %w[on off].include?(value.downcase)
-          value.downcase == 'on'
-        else
-          false
-        end
+        %w[1 true on].include?(value.to_s.downcase)
       elsif [FalseClass, TrueClass].include?(value.class)
         value
       elsif value.is_a?(Integer)
@@ -51,7 +43,7 @@ module Entities
     private
 
     def sanitize_value(value)
-      is_postive?(value) ? 'ON' : 'OFF'
+      postive?(value) ? 'ON' : 'OFF'
     end
   end
 end
