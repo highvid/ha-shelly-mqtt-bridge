@@ -2,6 +2,8 @@ module Entities
   module AnemicEntity
     HOME_ASSISTANT_PREFIX = 'homeassistant'.freeze
     extend ActiveSupport::Concern
+    include Support::AttributeActions::InstanceMethods
+
     included do
       attr_accessor :component, :command_topic_hash, :discovery_topic, :device, :name, :topic_hash
 
@@ -11,96 +13,7 @@ module Entities
     end
 
     class_methods do
-      def inherited(child_class)
-        %w[aggregate_keys attribute_defaults command_listen_attributes
-           in_state_attributes publish_attributes renamed_keys
-           sanitized_attributes sensitive_attributes].each do |key|
-          child_class.instance_variable_set("@#{key}", send(key).dup)
-        end
-      end
-
-      def attribute(*names, **options)
-        names.each do |attribute_name|
-          send(Config.method_definition, attribute_name) { attributes[attribute_name] }
-          send(Config.method_definition, :"#{attribute_name}=") do |value|
-            new_value = if self.class.sanitized_attributes.include?(attribute_name)
-                          send(options[:sanitize],
-                               value)
-                        else
-                          value
-                        end
-            @has_changed = self.class.sensitive_attributes.include?(attribute_name) && attributes[attribute_name] != new_value && device.present? && device.initialized
-            attributes[attribute_name] = new_value
-            post_attribute_publish(attribute_name) if @has_changed
-            new_value
-          end
-          send(Config.method_definition, :"#{attribute_name}_with_update=") do |value|
-            new_value = if self.class.sanitized_attributes.include?(attribute_name)
-                          send(options[:sanitize], value)
-                        else
-                          value
-                        end
-            @has_changed = self.class.sensitive_attributes.include?(attribute_name) && attributes[attribute_name] != new_value && device.present? && device.initialized
-            attributes[attribute_name] = new_value
-            post_attribute_update(attribute_name) if @has_changed
-            new_value
-          end
-          aggregate_keys[attribute_name] = options[:aggregate_key]
-          attribute_defaults[attribute_name] = options[:default]
-          options_for_listening(attribute_name, options[:command_topic], options[:command_update_field],
-                                options[:command_callback])
-          options[:in_state].is_a?(TrueClass) ? in_state_attributes << attribute_name : in_state_attributes >> attribute_name
-          option_for_publishing(attribute_name, options[:publish_topic], options[:publish_method],
-                                options[:publish_periodicity])
-          renamed_keys[attribute_name] = options[:renamed_key]
-          sanitized_attributes[attribute_name] = options[:sanitize]
-          options[:track_update?].is_a?(TrueClass) ? sensitive_attributes << attribute_name : sensitive_attributes >> attribute_name
-        end
-      end
-
-      def options_for_listening(name, command_topic, update_field, callback)
-        command_listen_attributes[name] = if command_topic.present? && command_topic
-                                            { state: update_field, device_adapter_method: callback }
-                                          end
-      end
-
-      def option_for_publishing(name, topic, method, periodicity)
-        publish_attributes[name] = if topic.present? && method.present? && periodicity.present? && topic
-                                     { method:, periodicity: }
-                                   end
-      end
-
-      def attribute_defaults
-        @attribute_defaults ||= SelfHealingHash.new
-      end
-
-      def aggregate_keys
-        @aggregate_keys ||= SelfHealingHash.new
-      end
-
-      def command_listen_attributes
-        @command_listen_attributes ||= SelfHealingHash.new
-      end
-
-      def in_state_attributes
-        @in_state_attributes ||= SelfHealingArray.new
-      end
-
-      def publish_attributes
-        @publish_attributes ||= SelfHealingHash.new
-      end
-
-      def renamed_keys
-        @renamed_keys ||= SelfHealingHash.new
-      end
-
-      def sensitive_attributes
-        @sensitive_attributes ||= SelfHealingArray.new
-      end
-
-      def sanitized_attributes
-        @sanitized_attributes ||= SelfHealingHash.new
-      end
+      include Support::AttributeActions::ClassMethods
     end
 
     def publish_offline!
