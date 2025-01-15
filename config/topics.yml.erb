@@ -9,12 +9,3 @@ mqtt:
     port: <%= ENV['RELAY_MQTT_PORT'] %>
     username: <%= ENV['RELAY_MQTT_USER'] %>
     password: <%= ENV['RELAY_MQTT_PASSWORD'] %>
-devices:
-  <% %w[SHELLY_DIMMER_2 SHELLY_2_5 SHELLY_PLUS_1_PM SHELLY_1 SHELLY_1_PM SHELLY_PLUS_2_PM SHELLY_EM].each do |type| %>
-    <% if ENV[type].present? %>
-      <%= type.to_s.downcase %>:
-      <% ENV[type].split(',').uniq.each do |topic| %>
-      - <%= topic %>
-      <% end %>
-    <% end %>
-  <% end %>

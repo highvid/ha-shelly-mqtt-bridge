@@ -13,43 +13,25 @@ module Mqtt
 
     def subscribe!
       all_threads
-      subscribe_to_aggregated_topics
-      subscribe_to_aggregated_command_topics
       subscribe_to_home_assistant_topics
+      subscribe_to_announcements
       all_threads.each(&:join)
     rescue SignalException
       quit!
     end
 
-    def subscribe_to_aggregated_topics
-      relay_mqtt.subscribe(aggregated_topics.keys) if aggregated_topics.keys.present?
-    end
-
-    def subscribe_to_aggregated_command_topics
-      home_assistant_mqtt.subscribe(aggregated_command_topics.keys) if aggregated_command_topics.keys.present?
+    def subscribe_to_announcements
+      relay_mqtt.subscribe('shellies/announce')
     end
 
     def subscribe_to_home_assistant_topics
       home_assistant_mqtt.subscribe(HOME_ASSISTANT_UPDATES_TOPIC)
     end
 
+    def threads = []
+
     def all_threads
       @all_threads ||= threads
-    end
-
-    def threads
-      [handler_post_init_updates]
-    end
-
-    def handler_post_init_updates
-      Thread.new do
-        AppLogger.debug 'Starting checks'
-        while Config.singleton.devices.any?(&:unitialized?)
-          AppLogger.info 'Waiting for devices to be initialized'
-          sleep 10
-        end
-        AppLogger.info 'All devices initialized'
-      end
     end
 
     def quit!

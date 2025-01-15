@@ -55,11 +55,11 @@ module Entities
         end
 
         def define_attribute_method(attribute_name)
-          send(Config.method_definition, attribute_name) { attributes[attribute_name] }
+          define_method(attribute_name) { attributes[attribute_name] }
         end
 
         def define_attribute_assignment(attribute_name, method_name:, post_attribute_method:, sanitize_method:)
-          send(Config.method_definition, method_name.to_sym) do |value|
+          define_method(method_name.to_sym) do |value|
             new_value = sanitized_value(attribute_name, value, sanitize_method)
             @has_changed = value_changed?(attribute_name, new_value)
             attributes[attribute_name] = new_value

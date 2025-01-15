@@ -32,5 +32,29 @@ module Publishables
       @publish_client ||= Mqtt::Clients.const_get(self.class.to_s.split('::').last)
                                        .new(mqtt_client, "shellies/#{unique_id}")
     end
+
+    def announcement_client
+      @announcement_client ||= Config.singleton.create_announcement_client
+    end
+
+    def destroy_announcement_client!
+      @announce_client.disconnect if @announce_client.present?
+      @announce_client = nil
+    end
+
+    def initialized
+      @initialized = false if @initialized.nil?
+      @initialized
+    end
+
+    def unitialized?
+      !initialized
+    end
+
+    def entities
+      raise 'Device not initialized' if unitialized?
+
+      @entities
+    end
   end
 end
