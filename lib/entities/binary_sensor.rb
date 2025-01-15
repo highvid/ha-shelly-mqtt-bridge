@@ -28,7 +28,7 @@ module Entities
 
     protected
 
-    def postive?(value)
+    def positive?(value)
       if value.is_a?(String)
         %w[1 true on].include?(value.to_s.downcase)
       elsif [FalseClass, TrueClass].include?(value.class)
@@ -43,7 +43,7 @@ module Entities
     private
 
     def sanitize_value(value)
-      postive?(value) ? 'ON' : 'OFF'
+      positive?(value) ? 'ON' : 'OFF'
     end
   end
 end

@@ -9,7 +9,9 @@ module Device
           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-current-#{index}", initial_value: 0.0 } },
           hw_version: "#{Config::BLIGHVID.capitalize}-#{device_name}",
           identifiers: ->(entity) { [entity.device.unique_id] },
-          json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/attributes/#{index}" },
+          json_attributes_topic: lambda { |entity|
+            "#{Config::BLIGHVID}/#{entity.device.unique_id}/current/attributes/#{index}"
+          },
           listener_topics: [state: "status/switch:#{index}", state_adapter_method: :current_adapter_method],
           manufacturer: manufacturer_name,
           model: device_name,

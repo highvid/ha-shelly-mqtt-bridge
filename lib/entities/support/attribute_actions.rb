@@ -38,7 +38,7 @@ module Entities
           set_option(aggregate_keys, attribute_name, :aggregate_key, options)
           set_option(attribute_defaults, attribute_name, :default, options)
           set_option(renamed_keys, attribute_name, :renamed_key, options)
-          set_option(sanitized_attributes, attribute_name, :sanitze, options)
+          set_option(sanitized_attributes, attribute_name, :sanitize, options)
         end
 
         def set_option(option_set, attribute_name, key, options)

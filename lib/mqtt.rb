@@ -1,3 +1,7 @@
+require_relative './mqtt/support/accessibility'
+require_relative './mqtt/support/listenable'
+require_relative './mqtt/support/publishable'
+
 require_relative './mqtt/subscriber'
 require_relative './mqtt/topic_handler_factory'
 

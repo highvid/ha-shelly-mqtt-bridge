@@ -20,7 +20,7 @@ module Entities
     private
 
     def sanitize_value(value)
-      postive?(value) ? 'ON' : 'OFF'
+      positive?(value) ? 'ON' : 'OFF'
     end
   end
 end

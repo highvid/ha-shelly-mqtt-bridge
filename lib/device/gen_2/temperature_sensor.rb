@@ -6,10 +6,14 @@ module Device
         {
           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
           device_class: 'temperature',
-          entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-tc-#{index}", initial_value: 0.0 } },
+          entity_constructor: lambda { |device|
+            { unique_id: "#{device.unique_id}-temperature-#{index}", initial_value: 0.0 }
+          },
           hw_version: "#{Config::BLIGHVID.capitalize}-#{device_name}",
           identifiers: ->(entity) { [entity.device.unique_id] },
-          json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/attributes/#{index}" },
+          json_attributes_topic: lambda { |entity|
+            "#{Config::BLIGHVID}/#{entity.device.unique_id}/temperature/attributes/#{index}"
+          },
           listener_topics: [state: "status/switch:#{index}", state_adapter_method: :temperature_adapter_method],
           manufacturer: manufacturer_name,
           model: device_name,

@@ -9,11 +9,13 @@ module Device
                   device_class: 'firmware',
                   configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
                   entity_constructor: lambda { |device|
-                    { unique_id: "#{device.unique_id}-sw-version", initial_value: nil }
+                    { unique_id: "#{device.unique_id}-firmware", initial_value: nil }
                   },
                   hw_version: "#{Config::BLIGHVID.capitalize}-#{base::DEVICE}",
                   identifiers: ->(entity) { [entity.device.unique_id] },
-                  json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
+                  json_attributes_topic: lambda { |entity|
+                    "#{Config::BLIGHVID}/#{entity.device.unique_id}/firmware/attributes"
+                  },
                   listener_topics: [{ state: 'events/rpc', state_adapter_method: :sw_version_adapter }],
                   manufacturer: base::MANUFACTURER,
                   model: base::DEVICE,
