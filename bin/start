@@ -7,8 +7,11 @@ require 'logger'
 
 Bundler.require(:default)
 Dotenv.load('.env.local') if File.exist?('.env.local')
-STDOUT.sync = true
-$LOGGER = Logger.new(STDOUT, level: ENV.fetch('LOG_LEVEL', 'info').downcase.to_sym)
+$stdout.sync = true
+
+require_relative '../lib/app_logger'
+
+AppLogger.init!
 
 require_relative '../lib/exts'
 require_relative '../lib/config'

@@ -1,5 +1,5 @@
 class SelfHealingArray < Array
-  def >>(name)
-    delete(name)
+  def >>(other)
+    delete(other)
   end
 end

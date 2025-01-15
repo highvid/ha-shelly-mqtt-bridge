@@ -1,4 +1,7 @@
-
+require_relative 'entities/support/accessibility'
+require_relative 'entities/support/publishable'
+require_relative 'entities/support/listenable'
+require_relative 'entities/support/attribute_actions'
 require_relative 'entities/anemic_entity'
 require_relative 'entities/binary_sensor'
 require_relative 'entities/sensor'

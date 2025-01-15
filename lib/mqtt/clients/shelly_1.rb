@@ -2,6 +2,7 @@ module Mqtt
   module Clients
     class Shelly1
       attr_reader :mqtt_client, :base_topic
+
       def initialize(mqtt_client, base_topic)
         @mqtt_client = mqtt_client
         @base_topic = base_topic

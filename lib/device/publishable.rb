@@ -2,6 +2,12 @@ module Device
   module Publishable
     extend ActiveSupport::Concern
 
+    def self.included(base)
+      base.extend(Publishables::Entitiable)
+      base.include(Publishables::Topicable)
+      base.include(Publishables::Helper)
+    end
+
     def initialized
       @initialized = false if @initialized.nil?
       @initialized
@@ -13,154 +19,108 @@ module Device
 
     def entities
       raise 'Device not initialized' if unitialized?
+
       @entities
     end
 
-    attr_reader :announce_topic, :announce_topics, :announce_listen_topic, :announce_output, :announce_payload, :device_id, :ip_address,
-                :name, :post_announce_action, :topic, :topic_base, :topic_hash, :unique_id
-
-    def publish_topic_prefix
-      "blighvid/#{unique_id}"
-    end
-
-    def generate_topic(string)
-      "#{topic_base}/#{string}"
-    end
-
-    class_methods do
-      attr_accessor :entities, :topic_hash
-      def method_missing(method_name, *names, **arguments, &block)
-        class_name = method_name.to_s.singularize.camelize
-        if Entities.constants.include?(class_name.to_sym)
-          $LOGGER.debug "Defining #{class_name} for #{self.name}"
-          names.each { |name| setup_entity(name, arguments.merge(class: Entities.const_get(class_name)), block) }
-        elsif class_name == 'ListenerTopic'
-          self.topic_hash ||= {}
-          self.topic_hash.merge!(names.uniq.to_h do |topic_name|
-            [ topic_name, { state: nil, device_adapter_method: arguments[:update_method] } ]
-          end)
-        else
-          super
-        end
-      end
-
-      def setup_entity(entity_name, arguments, block)
-        (self.entities ||= []) << { entity_name:, block:,**arguments }
-      end
-    end
+    attr_reader :announce_topic, :announce_topics, :announce_listen_topic, :announce_output, :announce_payload,
+                :device_id, :ip_address, :name, :post_announce_action, :topic, :topic_base, :topic_hash, :unique_id
 
     def assign!(options = {})
-      options.each do |key, value|
-        instance_variable_set("@#{key}", value);
-      end
+      options.each { |key, value| instance_variable_set("@#{key}", value) }
       splits = topic.split('/')
-      @topic_base = splits[-1] == '#' ? splits[0..-2].join('/') : splits[0..-1].join('/')
+      @topic_base = splits[-1] == '#' ? splits[0..-2].join('/') : splits.join('/')
     end
 
-    def init!(options = {})
+    def init!(_options = {})
       return if initialized
 
-      post_announce_actions = { }
-      if @announce_topics.present?
-        reactions = announce_multiple_topics!
-        post_announce_actions = reactions.compact.to_h
-      else
-        message = announce_single_topic!
-        post_announce_actions = { @post_announce_action => message } if @post_announce_action.present?
-      end
-      @entities = self.class.entities.map { |entity| initialize_entity(entity.dup) }
-      @entities.each { |entity| entity.initialize!(self) }
-      post_announce_actions.each do |action, message|
-        send(action, message)
-      end
+      post_announce_actions = announce_multiple_topics!.compact.to_h
+      @entities = self.class.entities
+                      .map { |entity| initialize_entity(entity.dup) }
+                      .each { |entity| entity.initialize!(self) }
+      post_announce_actions.each { |action, message| send(action, message) }
       @initialized = true
     end
 
     def announce_multiple_topics!
       @announce_topics.map do |topic, metas|
         metas.map do |meta|
-          output = announce_single_topic!(topic, meta[:payload], meta[:listen_topic], meta[:process])
-          if meta[:post_process].present?
-            [meta[:post_process], output]
-          else
-            nil
-          end
+          output = announce_single_topic!(topic:, payload: meta[:payload],
+                                          listen_topic: meta[:listen_topic],
+                                          announce_method_process: meta[:process])
+          [meta[:post_process], output] if meta[:post_process].present?
         end
       end.flatten(1)
     end
 
-    def announce_single_topic!(topic_to_announce = @announce_topic, payload_to_announce = @announce_payload, listen_topic = @announce_listen_topic, announce_method_process = @announce_method_adapter)
-      client = Config.singleton.relay_mqtt
-      announcement = Thread.new do
-        _topic, message = Timeout.timeout(5) { client.get }
-        Thread.current[:output] = message
-      rescue Timeout::Error
-        $LOGGER.info "Retrying publishing for announcement on #{topic_to_announce}"
-        client.publish(@announce_topic, @announce_payload)
-        retry if Config.singleton.infinite_loop
-      end
-      $LOGGER.debug "Subscribing for announcement on #{listen_topic} "
-      client.subscribe(listen_topic)
-      $LOGGER.debug "Publishing for announcement on #{topic_to_announce} "
-      trigger_announce(topic_to_announce:, payload_to_announce:)
-      announcement.join
-      $LOGGER.debug "Announcement received #{listen_topic}"
-      client.unsubscribe(listen_topic)
-      announce_output = announcement[:output]
-      $LOGGER.debug "Announcement output for #{self.unique_id} #{announce_output}"
+    def announce_single_topic!(topic:, payload:, listen_topic:, announce_method_process:)
+      mqtt_client.subscribe(listen_topic)
+      trigger_announce(topic:, payload:)
+      thread = announcement_thread(topic, payload)
+      thread.join
+      mqtt_client.unsubscribe(listen_topic)
+      announce_output = thread[:output]
       send(announce_method_process, announce_output)
       announce_output
     end
 
-    def trigger_announce(client: Config.singleton.relay_mqtt, topic_to_announce:, payload_to_announce:)
-      client.publish(topic_to_announce, payload_to_announce)
-    end
+    def announcement_thread(topic, payload)
+      @announcement_threads ||= {}
+      topic_payload = "#{topic}-#{payload}"
+      return @announcement_threads[topic_payload] if @announcement_threads[topic_payload].present?
 
-    def force_publish_all!
-      entities.each { |entity| entity.force_publish_all! }
-    end
-
-    def publish_offline!
-      @entities.each(&:publish_offline!)
-    end
-
-    def initialize_entity(entity_hash)
-      entity_name = entity_hash.delete(:entity_name)
-      constructor = entity_hash.delete(:entity_constructor)
-      raise "Unknown constructor lambda provided for #{entity_name}" unless constructor.is_a?(Proc)
-
-      klass = entity_hash.delete(:class)
-      options = constructor.parameters.length == 2 ? constructor.call(self, entity_name) : constructor.call(self)
-      entity = klass.new(**options)
-      name = options.delete(:name)
-      entity.name = name.present? ? (name.is_a?(Proc) ? name.call(entity) : name ) : entity_name
-      entity.device = self
-      block = entity_hash.delete(:block)
-
-      entity.add_entity_listener_topic(entity_hash.delete(:listener_topics))
-      entity_hash.each do |key, value|
-        derived_value = value.is_a?(Proc) ? value.call(entity) : value
-        entity.send("#{key}=", derived_value)
+      @announcement_threads[topic_payload] = Thread.new do
+        _topic, message = Timeout.timeout(5) { mqtt_client.get }
+        Thread.current[:output] = message
+      rescue Timeout::Error
+        AppLogger.warn "Retrying publishing for announcement on #{topic} and payload #{payload}"
+        trigger_announce(topic:, payload:)
+        retry if Config.singleton.infinite_loop
       end
-      entity.json_attributes = { ip: @ip_address, device_id: @device_id, model: self.class::DEVICE, manufacturer: entity.manufacturer, friendly_unique_id: entity.unique_id }
-
-      block.call(entity) if block.present?
-      self.instance_variable_set("@#{entity_name}", entity)
     end
 
-    def all_relay_topic_listeners
-      return @all_relay_topic_listeners if @all_relay_topic_listeners.present?
-      @all_relay_topic_listeners = SelfHealingHash.new
-      @all_relay_topic_listeners.safe_merge!(self.class.topic_hash.to_h { |k, v| [generate_topic(k), v.merge(device: self)] })
-      entities.each { |entity| @all_relay_topic_listeners.safe_merge!(entity.topic_hash) }
-      @all_relay_topic_listeners
+    def trigger_announce(topic:, payload:)
+      mqtt_client.publish(topic, payload)
     end
 
-    def all_command_topic_listeners
-      return @all_command_topic_listeners if @all_command_topic_listeners.present?
-      @all_command_topic_listeners = SelfHealingHash.new
-      entities.each { |entity| @all_command_topic_listeners.safe_merge!(entity.command_topic_hash) }
-      @all_command_topic_listeners
+    def initialize_entity(hash)
+      meta = {}
+      %i[entity_name entity_constructor klass listener_topics block name].each { |key| meta[key] = hash.delete(key) }
+      raise "Unknown constructor lambda provided for #{meta[:entity_name]}" unless meta[:entity_constructor].is_a?(Proc)
+
+      entity = initialize_entity_using(**meta.except(:block))
+      initialize_entity_params(entity, hash)
+      initialize_json_attributes(entity)
+      initialize_block(entity, meta[:block])
+      instance_variable_set("@#{meta[:entity_name]}", entity)
+    end
+
+    def initialize_entity_params(entity, hash)
+      hash.each { |key, value| entity.send("#{key}=", safe_proc_execute(value, entity)) }
+    end
+
+    def initialize_block(entity, block)
+      block&.call(entity)
+    end
+
+    def initialize_entity_using(entity_name:, entity_constructor:, klass:, listener_topics:, name:)
+      options = options_from_contructor(entity_constructor, entity_name)
+      entity = klass.new(**options)
+      entity.name = name.present? ? safe_proc_execute(name, entity) : entity_name
+      entity.device = self
+
+      entity.add_entity_listener_topic(listener_topics)
+      entity
+    end
+
+    def initialize_json_attributes(entity)
+      entity.json_attributes = { ip: @ip_address, device_id: @device_id, model: self.class::DEVICE,
+                                 manufacturer: entity.manufacturer, friendly_unique_id: entity.unique_id }
+    end
+
+    def hashified_message(message)
+      message.is_a?(Hash) ? message.deep_symbolize_keys : JSON.parse(message).deep_symbolize_keys
     end
   end
 end

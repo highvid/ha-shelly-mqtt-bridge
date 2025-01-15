@@ -1,12 +1,13 @@
 require 'yaml'
 
 class Config
-  BLIGHVID = 'blighvid'
+  BLIGHVID = 'blighvid'.freeze
   attr_accessor :infinite_loop, :devices, :info
   attr_reader :device_info, :relay_mqtt, :home_assistant_mqtt
 
   def aggregated_topics
     return @aggregated_topics if @aggregated_topics.present?
+
     @aggregated_topics = SelfHealingHash.new
     devices.each { |device| @aggregated_topics.safe_merge!(device.all_relay_topic_listeners) }
     @aggregated_topics
@@ -14,6 +15,7 @@ class Config
 
   def aggregated_command_topics
     return @aggregated_command_topics if @aggregated_command_topics.present?
+
     @aggregated_command_topics = SelfHealingHash.new
     devices.each { |device| @aggregated_command_topics.safe_merge!(device.all_command_topic_listeners) }
     @aggregated_command_topics
@@ -26,10 +28,10 @@ class Config
   private
 
   def load_info(file_name: 'config/topics.yml.erb')
-    if @info.blank?
-      template = ERB.new File.new(file_name).read
-      @info = YAML.load(template.result(binding)).deep_symbolize_keys
-    end
+    return unless @info.blank?
+
+    template = ERB.new File.new(file_name).read
+    @info = YAML.load(template.result(binding)).deep_symbolize_keys
   end
 
   def initialize
@@ -52,7 +54,7 @@ class Config
           klass.new(
             name: Config.titleize(object_id_from_topic(topic)),
             topic:,
-            unique_id: object_id_from_topic(topic),
+            unique_id: object_id_from_topic(topic)
           )
         end
       end.flatten
@@ -76,10 +78,10 @@ class Config
 
     def method_definition
       @method_definition ||= if respond_to?(:define_method, true)
-        :define_method
-      else
-        :define_singleton_method
-      end
+                               :define_method
+                             else
+                               :define_singleton_method
+                             end
     end
 
     def titleize(string)
@@ -89,19 +91,19 @@ class Config
     def threadize(periodicity, initialize_periodicity)
       @threads ||= []
       @threads << Thread.new do
-        while Config.singleton.infinite_loop do
+        while Config.singleton.infinite_loop
           result = yield
-          sleep result ? periodicity :initialize_periodicity
+          sleep result ? periodicity : initialize_periodicity
         end
-      rescue => e
-        $LOGGER.error "Exception: #{e.message}"
-        $LOGGER.error e.backtrace.join("\n")
+      rescue StandardError => e
+        AppLogger.exception(e)
         exit(1)
       end
     end
 
     def join
       return if @threads.blank?
+
       @threads.each(&:kill)
     end
   end
