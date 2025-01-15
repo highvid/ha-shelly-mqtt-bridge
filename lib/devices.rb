@@ -25,3 +25,5 @@ require_relative 'device/shelly_dimmer_2'
 require_relative 'device/shelly_plus_1_pm'
 require_relative 'device/shelly_plus_2_pm'
 require_relative 'device/shelly_em'
+
+require_relative 'device/mapper'

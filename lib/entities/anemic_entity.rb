@@ -37,7 +37,7 @@ module Entities
     end
 
     def associate_device!(device)
-      AppLogger.info "Initialising #{unique_id} for device #{device.name}"
+      AppLogger.debug "Initialising #{unique_id} for device #{device.name}"
       @device = device
       self.device_name = device.name
       self.payload_topic = "blighvid/#{unique_id}/availability"

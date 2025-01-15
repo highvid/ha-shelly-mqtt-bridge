@@ -1,6 +1,8 @@
 module Mqtt
   module Support
     module Listenable
+      attr_reader :initialised_devices
+
       def threads
         super + [thread_for_state_listeners, thread_for_command_listeners]
       end
@@ -11,8 +13,10 @@ module Mqtt
             AppLogger.debug "Got message from topic #{topic} -> #{message}"
             if aggregated_topics[topic].present?
               handle(topic, aggregated_topics[topic], message)
+            elsif topic == 'shellies/announce'
+              discover(topic, message)
             else
-              AppLogger.warn "Unknown handler for #{topic}"
+              unhandled_topic(topic)
             end
           end
         rescue StandardError => e
@@ -29,7 +33,7 @@ module Mqtt
             elsif topic == HOME_ASSISTANT_UPDATES_TOPIC
               check_and_publish_availability(message)
             else
-              unhandled_topic(topic)
+              unhandled_command_topic(topic)
             end
           end
         rescue StandardError => e
@@ -43,16 +47,28 @@ module Mqtt
         Config.singleton.devices.each(&:force_publish_all!)
       end
 
-      def unhandled_topic(topic)
-        AppLogger.warn "Unknown command handler for #{topic}"
+      def discover(topic, message)
+        @initialised_devices ||= []
+        mapper = Device::Mapper.new(topic, message)
+        return if @initialised_devices.include?(mapper.unique_id)
+
+        AppLogger.info("Found device #{mapper.unique_id}")
+        subscribe_to_device!(mapper.device)
+        @initialised_devices << mapper.unique_id
       end
 
-      def online_message?(message)
-        message == 'online'
+      def subscribe_to_device!(device)
+        subscribe_to_aggregated_topics(device)
+        subscribe_to_aggregated_command_topics(device)
+        Config.singleton.add_device(device)
       end
 
-      def offline_message?(message)
-        !online_message?(message)
+      def subscribe_to_aggregated_topics(device)
+        relay_mqtt.subscribe(device.all_relay_topic_listeners.keys)
+      end
+
+      def subscribe_to_aggregated_command_topics(device)
+        home_assistant_mqtt.subscribe(device.all_command_topic_listeners.keys)
       end
 
       def check_and_publish_availability(message)

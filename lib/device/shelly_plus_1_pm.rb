@@ -6,17 +6,6 @@ module Device
     include Publishable
     prepend Gen2::IterativeSensor
     prepend Gen2::Versionable
-    # binary_sensor :input,
-    #               configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
-    #               entity_constructor: ->(device, _entity_name) { { unique_id: "#{device.unique_id}-input" } },
-    #               hw_version: "#{Config::BLIGHVID.capitalize}-#{DEVICE}",
-    #               identifiers: ->(entity) { [entity.device.unique_id] },
-    #               json_attributes_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.unique_id}/attributes" },
-    #               listener_topics: [state: 'status/input:0', state_adapter_method: :input_adapter_method],
-    #               manufacturer: Config::BLIGHVID.to_s,
-    #               model: DEVICE,
-    #               name: 'Input',
-    #               state_topic: ->(entity) { "#{Config::BLIGHVID}/#{entity.device.unique_id}/input" }
     define_sensors :input, 1, sensor_klass: :binary_sensor
     define_sensors :energy, 1
     define_sensors :power, 1
