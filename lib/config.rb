@@ -3,26 +3,20 @@ require 'yaml'
 class Config
   BLIGHVID = 'blighvid'.freeze
   attr_accessor :infinite_loop, :devices, :info
-  attr_reader :device_info, :relay_mqtt, :home_assistant_mqtt
-
-  def aggregated_topics
-    return @aggregated_topics if @aggregated_topics.present?
-
-    @aggregated_topics = SelfHealingHash.new
-    devices.each { |device| @aggregated_topics.safe_merge!(device.all_relay_topic_listeners) }
-    @aggregated_topics
-  end
-
-  def aggregated_command_topics
-    return @aggregated_command_topics if @aggregated_command_topics.present?
-
-    @aggregated_command_topics = SelfHealingHash.new
-    devices.each { |device| @aggregated_command_topics.safe_merge!(device.all_command_topic_listeners) }
-    @aggregated_command_topics
-  end
+  attr_reader :aggregated_command_topics, :aggregated_topics, :device_info, :relay_mqtt, :home_assistant_mqtt
 
   def quit!
     @infinite_loop = false
+  end
+
+  def create_announcement_client
+    MQTT::Client.connect(Config.mqtt_info(@info[:mqtt][:relay]))
+  end
+
+  def add_device(device)
+    @devices << device
+    @aggregated_command_topics.safe_merge!(device.all_command_topic_listeners)
+    @aggregated_topics.safe_merge!(device.all_relay_topic_listeners)
   end
 
   private
@@ -36,11 +30,13 @@ class Config
 
   def initialize
     @infinite_loop = true
+    @devices = []
     load_info
     mqtt = @info[:mqtt]
     @relay_mqtt = MQTT::Client.connect(Config.mqtt_info(mqtt[:relay]))
     @home_assistant_mqtt = MQTT::Client.connect(Config.mqtt_info(mqtt[:home_assistant]))
-    @device_info = @info[:devices] || []
+    @aggregated_command_topics = SelfHealingHash.new
+    @aggregated_topics = SelfHealingHash.new
   end
 
   class << self
@@ -48,16 +44,6 @@ class Config
 
     def init!
       @singleton = new
-      @singleton.devices = @singleton.device_info.map do |type, topics|
-        klass = Device.const_get(type.to_s.camelize)
-        topics.map do |topic|
-          klass.new(
-            name: Config.titleize(object_id_from_topic(topic)),
-            topic:,
-            unique_id: object_id_from_topic(topic)
-          )
-        end
-      end.flatten
     end
 
     def mqtt_info(info)

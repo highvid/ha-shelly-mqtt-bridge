@@ -12,9 +12,11 @@ module Mqtt
       def thread_for_status_updates
         @thread_for_status_updates ||= Thread.new do
           loop do
+            UPDATE_COMMANDS.each do |update_command|
+              AppLogger.debug("Retrying command #{update_command}")
+              Config.singleton.relay_mqtt.publish(UPDATE_TOPIC, update_command)
+            end
             sleep UPDATE_DELAY
-            AppLogger.debug('Periodic fetching of status')
-            UPDATE_COMMANDS.each { |update_command| Config.singleton.relay_mqtt.publish(UPDATE_TOPIC, update_command) }
           end
         end
       end

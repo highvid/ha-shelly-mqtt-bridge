@@ -14,7 +14,7 @@ class AppLogger
     end
 
     def exception(exception, context: 'ERR')
-      @app_logger.error("#{context}\n#{e.message}\n#{exception.backtrace.join("\n")}")
+      @app_logger.error("#{context}\n#{exception.message}\n#{exception.backtrace.join("\n")}")
     end
   end
 end
