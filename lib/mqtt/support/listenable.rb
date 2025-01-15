@@ -52,7 +52,7 @@ module Mqtt
         mapper = Device::Mapper.new(topic, message)
         return if @initialised_devices.include?(mapper.unique_id)
 
-        AppLogger.info("Found device #{mapper.unique_id}")
+        AppLogger.info("Found device #{mapper.unique_id} (#{initialised_devices.length + 1})")
         subscribe_to_device!(mapper.device)
         @initialised_devices << mapper.unique_id
       end
