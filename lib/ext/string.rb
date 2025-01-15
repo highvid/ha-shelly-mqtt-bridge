@@ -3,4 +3,8 @@ class String
     number = to_f
     number * 1 / 60
   end
+
+  def safe_titleize
+    titleize.tr('/', ' ')
+  end
 end

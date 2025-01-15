@@ -89,7 +89,7 @@ module Entities
             compiled_hash[renamed_key_name] = value
           end
         end
-        compiled_hash[:name] = name || Config.titleize(unique_id)
+        compiled_hash[:name] = name || unique_id.to_s.titleize
         compiled_hash
       end
 

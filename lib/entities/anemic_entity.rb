@@ -95,23 +95,6 @@ module Entities
       device.generate_topic(derived_topic)
     end
 
-    # def to_h
-    #   duplicate_state = attributes.dup
-    #   compiled_hash = {}
-    #   self.class.aggregate_keys.each do |key, aggregate_key|
-    #     renamed_key_name = self.class.renamed_keys.key?(key) ? self.class.renamed_keys[key] : key
-    #     compiled_hash[aggregate_key] ||= {}
-    #     value = duplicate_state[key]
-    #     compiled_hash[aggregate_key][renamed_key_name] = duplicate_state.delete(key) if value.present?
-    #   end
-    #   self.class.publish_attributes.each do |attribute|
-    #     value = duplicate_state[attribute]
-    #     compiled_hash[attribute] = value if value.present?
-    #   end
-    #   compiled_hash[:name] = Config.titleize(unique_id)
-    #   compiled_hash
-    # end
-
     def post_attribute_update(attribute_name)
       entity_specific_attribute_update_method = "post_#{attribute_name}_update"
       if respond_to?(entity_specific_attribute_update_method)

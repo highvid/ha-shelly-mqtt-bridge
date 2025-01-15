@@ -31,7 +31,7 @@ module Device
 
     def device
       const_get.new(
-        name: Config.titleize(unique_id),
+        name: unique_id.to_s.titleize,
         topic: base_topic,
         unique_id: unique_id
       )

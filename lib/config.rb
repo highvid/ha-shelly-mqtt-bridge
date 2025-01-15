@@ -62,18 +62,6 @@ class Config
       last == '#' ? components[-2] : last
     end
 
-    def method_definition
-      @method_definition ||= if respond_to?(:define_method, true)
-                               :define_method
-                             else
-                               :define_singleton_method
-                             end
-    end
-
-    def titleize(string)
-      string.to_s.titleize.tr('/', ' ')
-    end
-
     def threadize(periodicity, initialize_periodicity)
       @threads ||= []
       @threads << Thread.new do
