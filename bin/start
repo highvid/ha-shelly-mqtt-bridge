@@ -4,22 +4,19 @@ require 'bundler'
 require 'active_support/all'
 require 'timeout'
 require 'logger'
+require 'find'
+require 'zeitwerk'
+require_relative '../lib/core_ext'
 
 Bundler.require(:default)
 Dotenv.load('.env.local') if File.exist?('.env.local')
 $stdout.sync = true
 
-require_relative '../lib/app_logger'
+loader = Zeitwerk::Loader.new
+loader.push_dir('./lib')
+loader.setup
 
 AppLogger.init!
-
-require_relative '../lib/exts'
-require_relative '../lib/config'
-require_relative '../lib/self_healing_array'
-require_relative '../lib/self_healing_hash'
-require_relative '../lib/entities'
-require_relative '../lib/devices'
-require_relative '../lib/mqtt'
 
 Config.init!
 mqtt = Mqtt::Subscriber.new

@@ -71,8 +71,7 @@ module Entities
         def options_for_listening(name, command_topic, update_field, callback)
           return unless command_topic.present?
 
-          command_listen_attributes[name] =
-            { state: update_field, device_adapter_method: callback }
+          command_listen_attributes[name] = { state: update_field, device_adapter_method: callback }
         end
 
         def option_for_publishing(name, topic, method, periodicity)

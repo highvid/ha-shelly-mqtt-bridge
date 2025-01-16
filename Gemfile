@@ -6,6 +6,7 @@ gem 'dotenv', require: 'dotenv/load'
 gem 'faraday'
 gem 'logger'
 gem 'mqtt'
+gem 'zeitwerk'
 
 group :development, :test do
   gem 'irb'
