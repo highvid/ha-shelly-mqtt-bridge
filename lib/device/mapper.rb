@@ -17,17 +17,13 @@ module Device
       @message = JSON.parse(message)
     end
 
-    def const_get
-      CLASS_MAPPER[message['model']]
-    end
+    def const_get = CLASS_MAPPER[message['model']]
 
     def unique_id
       @unique_id ||= message['name'] || message['id']
     end
 
-    def base_topic
-      "shellies/#{unique_id}/#"
-    end
+    def base_topic = "shellies/#{unique_id}/#"
 
     def device
       const_get.new(

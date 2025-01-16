@@ -1,6 +1,6 @@
 module Entities
   module Support
-    module Accessibillty
+    module Accessibility
       def attributes
         @attributes ||= {}
       end

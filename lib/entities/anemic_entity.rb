@@ -3,7 +3,7 @@ module Entities
     HOME_ASSISTANT_PREFIX = 'homeassistant'.freeze
     extend ActiveSupport::Concern
     include Support::AttributeActions::InstanceMethods
-    include Support::Accessibillty
+    include Support::Accessibility
     prepend Support::Publishable
     prepend Support::Listenable
 
