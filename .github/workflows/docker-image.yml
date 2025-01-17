@@ -20,6 +20,11 @@ jobs:
       # Step 1: Checkout repository
       - name: Checkout Repository
         uses: actions/checkout@v3
+        if: > 
+          ${{ github.event.workflow_run.conclusion  == 'success' &&
+              github.event.workflow_run.head_branch == 'main' &&
+              github.event.workflow_run.event       == 'push' }}
+
 
       - name: Extract Tag from Commit Message
         id: extract_tag
@@ -34,6 +39,7 @@ jobs:
             echo "should_continue=true" >> $GITHUB_ENV
           else
             echo "Unable to extract tag and message"
+            echo "Message=${message}"
             echo "should_continue=false" >> $GITHUB_ENV
           fi
         if: > 
