@@ -1,14 +1,20 @@
 name: Docker Buildx for GHCR on Release
 
 on:
-  release:
+  workflow_run:
+    workflows:
+      - Run Tests
     types:
-      - created
+      - completed
 
 jobs:
   build-and-push:
-    name: Build and Push Docker Image to GHCR
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion  == 'success' &&
+          github.event.workflow_run.head_branch == 'main' &&
+          github.event.workflow_run.event       == 'push' }}
+    permissions:
+      contents: write
 
     steps:
       # Step 1: Checkout repository
