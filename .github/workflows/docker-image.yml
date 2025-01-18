@@ -16,7 +16,7 @@ jobs:
     permissions:
       contents: write
       packages: write
-      action: read
+      actions: read
 
     steps:
       # Step 1: Checkout repository
