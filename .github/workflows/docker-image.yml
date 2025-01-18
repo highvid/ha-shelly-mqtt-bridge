@@ -15,7 +15,7 @@ jobs:
           github.event.workflow_run.event       == 'push' }}
     permissions:
       contents: write
-      packates: write
+      packages: write
       action: read
 
     steps:
