@@ -59,7 +59,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_ACCESS_KEY }}
+          password: ${{ secrets.GITHUB_TOKEN }}
         if: > 
           ${{ env.should_continue == 'true' && github.event.workflow_run.conclusion  == 'success' &&
               github.event.workflow_run.head_branch == 'main' &&
