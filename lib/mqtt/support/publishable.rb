@@ -2,7 +2,7 @@ module Mqtt
   module Support
     module Publishable
       UPDATE_COMMANDS = %w[announce status_update].freeze
-      UPDATE_DELAY = 600
+      UPDATE_DELAY = 100
       UPDATE_TOPIC = 'shellies/command'.freeze
 
       def threads
