@@ -57,6 +57,13 @@ module Device
 
         @entities
       end
+
+      def control_client
+        return @control_client if @control_client.present?
+
+        klass = Mqtt::Clients.const_get(self.class.to_s.split('::').last)
+        @control_client ||= klass.new(mqtt_client, "shellies/#{unique_id}")
+      end
     end
   end
 end
