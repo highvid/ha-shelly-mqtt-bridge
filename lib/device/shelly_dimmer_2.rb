@@ -105,7 +105,7 @@ module Device
     end
 
     def post_state_update(entity_name)
-      mqtt_client.update_light_state(@output.state&.downcase, @output.brightness) if entity_name.to_s == 'Light'
+      control_client.update_light_state(@output.state&.downcase, @output.brightness) if entity_name.to_s == 'Light'
     end
 
     def post_brightness_update(entity_name)

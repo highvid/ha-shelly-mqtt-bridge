@@ -38,13 +38,6 @@ module Device
       def post_state_update(entity_name)
         control_client.update_relay_state(@output.state&.downcase) if entity_name.to_s == 'Output'
       end
-
-      def control_client
-        return @control_client if @control_client.present?
-
-        klass = Mqtt::Clients.const_get(self.class.to_s.split('::').last)
-        @control_client ||= klass.new(mqtt_client, "shellies/#{unique_id}")
-      end
     end
   end
 end
