@@ -127,7 +127,7 @@ module Device
       relay = instance_variable_get("@relay_#{entity_name[-1]}")
       return unless ['relay 0', 'relay 1'].include?(entity_name.to_s.downcase)
 
-      client.update_relay_state(relay.state&.downcase, entity_name[-1])
+      mqtt_client.update_relay_state(relay.state&.downcase, entity_name[-1])
     end
 
     def state_update_callback(message)
