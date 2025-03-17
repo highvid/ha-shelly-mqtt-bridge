@@ -11,3 +11,6 @@ RELAY_MQTT_HOST
 RELAY_MQTT_PORT
 RELAY_MQTT_USER
 RELAY_MQTT_PASSWORD
+
+## Features
+* Auto configuration based on homeassistant auto discovery topics
