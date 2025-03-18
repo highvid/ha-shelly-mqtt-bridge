@@ -16,3 +16,4 @@ RELAY_MQTT_PASSWORD
 * Auto configuration based on homeassistant auto discovery topics
 * Minimal configuration setup on server
 * Multiple Shelly Formats supported
+* Control of output devices
