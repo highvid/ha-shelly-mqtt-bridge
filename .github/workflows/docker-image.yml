@@ -35,22 +35,23 @@ jobs:
           if [[ $LAST_COMMIT_MESSAGE =~ tag:([^[:space:]]+)[[:space:]]+(.*) ]]; then
             echo "Custom tag found: ${BASH_REMATCH[1]}"
             echo "Custom message: ${BASH_REMATCH[2]}"
-            echo "custom_tag=${BASH_REMATCH[1]}" >> $GITHUB_ENV
-            echo "custom_message=${BASH_REMATCH[2]}" >> $GITHUB_ENV
-            echo "should_continue=true" >> $GITHUB_ENV
+            echo "custom_tag=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+            echo "custom_message=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
+            echo "should_continue=true" >> $GITHUB_OUTPUT
           else
             echo "Unable to extract tag and message"
             echo "Message=${LAST_COMMIT_MESSAGE}"
-            echo "should_continue=false" >> $GITHUB_ENV
+            echo "should_continue=false" >> $GITHUB_OUTPUT
           fi
         if: > 
           ${{ github.event.workflow_run.conclusion  == 'success' &&
               github.event.workflow_run.head_branch == 'main' &&
               github.event.workflow_run.event       == 'push' }}
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
         if: > 
-          ${{ env.should_continue == 'true' && github.event.workflow_run.conclusion  == 'success' &&
+          ${{ steps.extract_tag.outputs.should_continue == 'true' && github.event.workflow_run.conclusion  == 'success' &&
               github.event.workflow_run.head_branch == 'main' &&
               github.event.workflow_run.event       == 'push' }}
 
@@ -61,7 +62,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
         if: > 
-          ${{ env.should_continue == 'true' && github.event.workflow_run.conclusion  == 'success' &&
+          ${{ steps.extract_tag.outputs.should_continue == 'true' && github.event.workflow_run.conclusion  == 'success' &&
               github.event.workflow_run.head_branch == 'main' &&
               github.event.workflow_run.event       == 'push' }}
 
@@ -70,11 +71,11 @@ jobs:
         with:
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/ha-shelly-bridge:${{ env.custom_tag }}
+            ghcr.io/${{ github.repository_owner }}/ha-shelly-bridge:${{ steps.extract_tag.outputs.custom_tag }}
           platforms: linux/amd64,linux/arm64
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/ha-shelly-bridge:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/ha-shelly-bridge:cache,mode=max
         if: > 
-          ${{ env.should_continue == 'true' && github.event.workflow_run.conclusion  == 'success' &&
+          ${{ steps.extract_tag.outputs.should_continue == 'true' && github.event.workflow_run.conclusion  == 'success' &&
               github.event.workflow_run.head_branch == 'main' &&
               github.event.workflow_run.event       == 'push' }}
