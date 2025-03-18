@@ -15,5 +15,12 @@ RELAY_MQTT_PASSWORD
 ## Features
 * Auto configuration based on homeassistant auto discovery topics
 * Minimal configuration setup on server
-* Multiple Shelly Formats supported
 * Control of output devices
+* Devices supported
+  * Shelly 1
+  * Shelly 1 PM
+  * Shelly 2.5
+  * Shelly Dimmer 2
+  * Shelly EM
+  * Shelly Plus 1 PM
+  * Shelly Plus 2 PM
