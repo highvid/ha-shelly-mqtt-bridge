@@ -49,7 +49,7 @@ jobs:
             {
               "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
               "timestamp": "${{ steps.slack-message.outputs.slack-message-ts }}",
-              "text": "${{ (github.event.review.state == 'approved' || github.event.review.state == 'dismissed') && (github.event.review.state == 'approved' ? ':tick:' : ':remove_tick:') }}"
+              "text": "${{ (github.event.review.state == 'approved' || github.event.review.state == 'dismissed') && (github.event.review.state == 'approved' && ':tick:' || ':remove_tick:') }}"
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
