@@ -18,8 +18,10 @@ jobs:
           if [[ -n "$ARTIFACT_ID" ]]; then
             echo "ARTIFACT_EXISTS=true" >> $GITHUB_ENV
             echo "ARTIFACT_ID=$ARTIFACT_ID" >> $GITHUB_ENV
+            echo "Artifact ID found"
           else
             echo "ARTIFACT_EXISTS=false" >> $GITHUB_ENV
+            echo "Artifact ID not found"
           fi
         env:
           GH_TOKEN: ${{ secrets.GHCR_ACCESS_KEY }}
