@@ -14,84 +14,16 @@ jobs:
     steps:
       - name: Send Slack Notification
         id: slack-message
-        run: |
-          PAYLOAD=$(cat <<EOF
-          {
-            "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
-            "text": "${{ github.event.pull_request.user.login }} created PR <${{ github.event.pull_request.html_url }}|#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}>"
-          }
-          EOF
-          )
-          RESPONSE=$(curl -X POST -H 'Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}' -H 'Content-type: application/json' --data "$PAYLOAD" https://slack.com/api/chat.postMessage)
-          echo "SLACK_RESPONSE=$RESPONSE" >> $GITHUB_ENV
-          MESSAGE_TS=$(echo "$RESPONSE" | jq -r '.ts')
-          echo "MESSAGE_TS=$MESSAGE_TS" >> $GITHUB_ENV
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL_ID }}
+            text: ${{ github.event.pull_request.user.login }} created PR <${{ github.event.pull_request.html_url }}|#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}>
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' ||  github.event.action == 'reopened')
 
       - name: Debug Message TS
         run: |
-          echo "Message TS: ${{ env.MESSAGE_TS }}"
+          echo "Message TS: ${{ steps.slack-message.outputs.ts  }}"
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
-
-      - name: Add Buildkite Emoji
-        uses: slackapi/slack-github-action@v1/reaction-add
-        if: github.event_name == 'check_suite' && github.event.check_suite.conclusion == 'success'
-        with:
-          name: buildkite
-          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
-          timestamp: ${{ env.MESSAGE_TS }}
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-
-      - name: Add Tick Emoji (Review)
-        uses: slackapi/slack-github-action@v1/reaction-add
-        if: github.event_name == 'pull_request_review' && github.event.review.state == 'approved'
-        with:
-          name: tick
-          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
-          timestamp: ${{ env.MESSAGE_TS }}
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-
-      - name: Remove Tick Emoji if all reviews dismissed
-        if: github.event_name == 'pull_request_review' && github.event.review.state == 'dismissed'
-        run: |
-          REVIEWS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews --jq '.[] | .state' | grep -c approved)
-          if [[ "$REVIEWS" -eq 0 ]]; then
-            echo "All reviews dismissed, removing tick."
-            echo "SLACK_PAYLOAD={\"channel\":\"${{ secrets.SLACK_CHANNEL_ID }}\",\"timestamp\":\"${{ env.MESSAGE_TS }}\",\"name\":\"remove_tick\"}" >> $GITHUB_ENV
-          else
-            echo "Approved reviews still exist, skipping tick removal."
-          fi
-        env:
-          GHCR_ACCESS_KEY: ${{ secrets.GHCR_ACCESS_KEY }}
-
-      - name: Remove Tick Emoji
-        uses: slackapi/slack-github-action@v1/reaction-remove
-        if: env.SLACK_PAYLOAD
-        with:
-          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
-          timestamp: ${{ env.MESSAGE_TS }}
-          name: remove_tick
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-
-      - name: Add Merged Emoji
-        uses: slackapi/slack-github-action@v1/reaction-add
-        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
-        with:
-          name: merged
-          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
-          timestamp: ${{ env.MESSAGE_TS }}
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-
-      - name: Add X Emoji (Closed)
-        uses: slackapi/slack-github-action@v1/reaction-add
-        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
-        with:
-          name: x
-          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
-          timestamp: ${{ env.MESSAGE_TS }}
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
