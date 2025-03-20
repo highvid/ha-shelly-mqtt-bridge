@@ -37,7 +37,6 @@ jobs:
         if: ${{ env.ARTIFACT_EXISTS == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
         with:
           method: reactions.add
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             timestamp: ${{ env.THREAD_TS }}
