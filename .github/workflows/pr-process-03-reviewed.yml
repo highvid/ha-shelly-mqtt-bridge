@@ -1,0 +1,62 @@
+name: Notify Slack of Review Comments
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  slack-notification-approved:
+    runs-on: ubuntu-latest
+    if: github.event.review.state == 'APPROVED'
+    steps:
+      - name: Check for Artifact
+        id: check-artifact
+        run: |
+          ARTIFACT_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                                -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/actions/artifacts" | \
+                        jq -r '.artifacts | map(select(.name == "slack-thread-ts-${{ github.event.pull_request.number }}")) | sort_by(.created_at)  | .[-1].id')
+          if [[ -n "$ARTIFACT_ID" ]]; then
+            echo "ARTIFACT_EXISTS=true" >> $GITHUB_ENV
+            echo "ARTIFACT_ID=$ARTIFACT_ID" >> $GITHUB_ENV
+            echo "Artifact ID found"
+          else
+            echo "ARTIFACT_EXISTS=false" >> $GITHUB_ENV
+            echo "Artifact ID not found"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GHCR_ACCESS_KEY }}
+      - name: Download Artifact
+        run: |
+          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${{ env.ARTIFACT_ID }}/zip" \
+            -o artifact.zip
+          unzip artifact.zip -d artifact_contents
+          THREAD_TS=$(cat artifact_contents/slack_thread_ts_${{github.event.pull_request.number}}.txt)
+          echo "THREAD_TS=$THREAD_TS" >> $GITHUB_ENV
+          echo "Applying Thread TS TO $THREAD_TS"
+        if: ${{ env.ARTIFACT_EXISTS == 'true' }}
+      - name: Add PR Approved
+        id: pr-comment
+        uses: slackapi/slack-github-action@v2.0.0
+        if: ${{ env.ARTIFACT_EXISTS == 'true' }}
+        continue-on-error: true
+        with:
+          errors: true
+          method: reactions.add
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL_ID }}
+            timestamp: ${{ env.THREAD_TS }}
+            name: "tick"
+      - name: Add who commented the PR
+        uses: slackapi/slack-github-action@v2.0.0
+        if: ${{ steps.pr-comment.outcome != 'failure' && env.ARTIFACT_EXISTS == 'true' }}
+        with:
+          errors: true
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL_ID }}
+            thread_ts: "${{ env.THREAD_TS }}"
+            text: "Approved by ${{ github.actor }}"
