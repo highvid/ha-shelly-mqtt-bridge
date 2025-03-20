@@ -37,6 +37,7 @@ jobs:
           echo "Applying Thread TS TO $THREAD_TS"
         if: ${{ env.ARTIFACT_EXISTS == 'true' }}
       - name: Add PR Commented Emoji
+        id: pr-comment
         uses: slackapi/slack-github-action@v2.0.0
         if: ${{ env.ARTIFACT_EXISTS == 'true' }}
         continue-on-error: true
@@ -50,12 +51,12 @@ jobs:
             name: "comment_added"
       - name: Add who commented the PR
         uses: slackapi/slack-github-action@v2.0.0
-        if: ${{ success() && env.ARTIFACT_EXISTS == 'true' }}
+        if: ${{ steps.pr-comment.outcome != 'failure' && env.ARTIFACT_EXISTS == 'true' }}
         with:
           errors: true
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
-            thread_ts: ${{ env.THREAD_TS }}
+            thread_ts: "${{ env.THREAD_TS }}""
             text: "Comments by ${{ github.actor }}"
