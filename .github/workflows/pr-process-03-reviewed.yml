@@ -1,4 +1,4 @@
-name: Notify Slack of Review Comments
+name: Notify Slack of PR Approval
 
 on:
   pull_request_review:
