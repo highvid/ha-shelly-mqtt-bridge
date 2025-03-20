@@ -24,7 +24,7 @@ jobs:
           USERS_LIST=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" https://slack.com/api/users.list)
           MATCHED_ID=$(echo $USERS_LIST | jq -r --arg NAME "$ACTOR_NAME" '.members[] | select(.real_name==$NAME) | .id')
           if [ -z "$MATCHED_ID" ]; then
-            MATCHED_ID="NOT_FOUND"
+            MATCHED_ID="${{ github.actor }}"
           fi
           echo "slack_user_id=$MATCHED_ID" >> $GITHUB_OUTPUT
       - name: Send Slack Notification
