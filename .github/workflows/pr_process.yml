@@ -23,16 +23,16 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
-      - name: Debug Channel ID
-        if: github.event_name == 'pull_request' && github.event.action == 'closed'
-        run: |
-          echo "Channel ID: ${{ secrets.SLACK_CHANNEL_ID }}"
+      - name: Debug Timestamp
+        run: echo "Timestamp: ${{ steps.slack-message.outputs.slack-message-ts }}"
+        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
 
       - name: Add Buildkite Emoji
         uses: slackapi/slack-github-action@v1
         if: github.event_name == 'check_suite' && github.event.check_suite.conclusion == 'success'
         with:
           update-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
           payload: |
             {
               "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
@@ -53,7 +53,7 @@ jobs:
             {
               "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
               "timestamp": "${{ steps.slack-message.outputs.slack-message-ts }}",
-              "text": "${{ (github.event.review.state == 'approved' || github.event.review.state == 'dismissed') && (github.event.review.state == 'approved' && ':tick:' || ':remove_tick:') }}"
+              "text": "${{ (github.event.review.state == 'approved' || github.event.review.state == 'dismissed') && (github.event.review.state == 'approved' && ':tick:' || ':tick:') }}"
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -65,7 +65,7 @@ jobs:
           REVIEWS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews --jq '.[] | .state' | grep -c approved)
           if [[ "$REVIEWS" -eq 0 ]]; then
             echo "All reviews dismissed, removing tick."
-            echo "SLACK_PAYLOAD={\"channel\":\"${{ secrets.SLACK_CHANNEL_ID }}\",\"timestamp\":\"${{ steps.slack-message.outputs.slack-message-ts }}\",\"text\":\":remove_tick:\"}" >> $GITHUB_ENV
+            echo "SLACK_PAYLOAD={\"channel\":\"${{ secrets.SLACK_CHANNEL_ID }}\",\"timestamp\":\"${{ steps.slack-message.outputs.slack-message-ts }}\",\"text\":\":tick:\"}" >> $GITHUB_ENV
           else
             echo "Approved reviews still exist, skipping tick removal."
           fi
@@ -77,6 +77,7 @@ jobs:
         if: env.SLACK_PAYLOAD
         with:
           update-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
           payload: ${{ env.SLACK_PAYLOAD }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -87,6 +88,7 @@ jobs:
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
         with:
           update-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
           payload: |
             {
               "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
