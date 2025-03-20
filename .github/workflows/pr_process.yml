@@ -29,7 +29,8 @@ jobs:
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' ||  || github.event.action == 'reopened')
 
       - name: Debug Message TS
-        run: echo "Message TS: ${{ env.MESSAGE_TS }}"
+        run: |
+          echo "Message TS: ${{ env.MESSAGE_TS }}"
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened'))
 
       - name: Add Buildkite Emoji
