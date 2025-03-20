@@ -1,0 +1,110 @@
+name: PR Slack Notifications
+
+on:
+  pull_request:
+    types: [opened, closed, reopened]
+  check_suite:
+    types: [completed]
+  pull_request_review:
+    types: [submitted, dismissed]
+
+jobs:
+  slack-notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1
+        id: slack-message
+        with:
+          payload: |
+            {
+              "text": "${{ github.event.pull_request.user.login }} created PR <${{ github.event.pull_request.html_url }}|#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}>"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: github.event_name == 'pull_request' && github.event.action == 'opened'
+
+      - name: Add Buildkite Emoji
+        uses: slackapi/slack-github-action@v1
+        if: github.event_name == 'check_suite' && github.event.check_suite.conclusion == 'success'
+        with:
+          slack-message-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          payload: |
+            {
+              "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
+              "timestamp": "${{ steps.slack-message.outputs.slack-message-ts }}",
+              "text": ":buildkite:"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+
+      - name: Add/Remove Tick Emoji (Review)
+        uses: slackapi/slack-github-action@v1
+        id: review-action
+        if: github.event_name == 'pull_request_review'
+        with:
+          slack-message-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          payload: |
+            {
+              "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
+              "timestamp": "${{ steps.slack-message.outputs.slack-message-ts }}",
+              "text": "${{ (github.event.review.state == 'approved' || github.event.review.state == 'dismissed') && (github.event.review.state == 'approved' ? ':tick:' : ':remove_tick:') }}"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+
+      - name: Remove Tick Emoji if all reviews dismissed
+        uses: slackapi/slack-github-action@v1
+        if: github.event_name == 'pull_request_review' && github.event.review.state == 'dismissed'
+        run: |
+          REVIEWS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews --jq '.[] | .state' | grep -c approved)
+          if [[ "$REVIEWS" -eq 0 ]]; then
+            echo "All reviews dismissed, removing tick."
+            echo "SLACK_PAYLOAD={\"channel\":\"${{ secrets.SLACK_CHANNEL_ID }}\",\"timestamp\":\"${{ steps.slack-message.outputs.slack-message-ts }}\",\"text\":\":remove_tick:\"}" >> $GITHUB_ENV
+          else
+            echo "Approved reviews still exist, skipping tick removal."
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GHCR_ACCESS_KEY }}
+
+      - name: Remove Tick Emoji
+        uses: slackapi/slack-github-action@v1
+        if: env.SLACK_PAYLOAD
+        with:
+          slack-message-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          payload: ${{ env.SLACK_PAYLOAD }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+
+      - name: Add Merged Emoji
+        uses: slackapi/slack-github-action@v1
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+        with:
+          slack-message-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          payload: |
+            {
+              "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
+              "timestamp": "${{ steps.slack-message.outputs.slack-message-ts }}",
+              "text": ":merged:"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+
+      - name: Add X Emoji (Closed)
+        uses: slackapi/slack-github-action@v1
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
+        with:
+          slack-message-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          payload: |
+            {
+              "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
+              "timestamp": "${{ steps.slack-message.outputs.slack-message-ts }}",
+              "text": ":x:"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
