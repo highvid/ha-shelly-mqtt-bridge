@@ -35,7 +35,7 @@ jobs:
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
-            text: "${{ github.event.pull_request.user.login }} created PR <${{ github.event.pull_request.html_url }}|#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}> by <@${{ steps.find_slack_user.outputs.slack_user_id }}>"
+            text: "Please review PR <${{ github.event.pull_request.html_url }}|#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}> by <@${{ steps.find_slack_user.outputs.slack_user_id }}>"
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' ||  github.event.action == 'reopened')
 
       - name: Debug Message TS
