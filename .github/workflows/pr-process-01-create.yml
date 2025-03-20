@@ -1,4 +1,4 @@
-name: PR Slack Notifications Create
+name: Notify Slack of PR Creation
 
 on:
   pull_request:

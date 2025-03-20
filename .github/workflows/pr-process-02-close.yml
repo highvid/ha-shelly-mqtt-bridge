@@ -1,4 +1,4 @@
-name: PR Closed
+name: Notify Slack of PR Closure
 
 on:
   pull_request:
@@ -37,6 +37,7 @@ jobs:
         uses: slackapi/slack-github-action@v2.0.0
         if: ${{ env.ARTIFACT_EXISTS == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
         with:
+          errors: true
           method: reactions.add
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
