@@ -24,8 +24,9 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
       - name: Debug Channel ID
-        run: echo "Channel ID: ${{ secrets.SLACK_CHANNEL_ID }}"
         if: github.event_name == 'pull_request' && github.event.action == 'closed'
+        run: |
+          echo "Channel ID: ${{ secrets.SLACK_CHANNEL_ID }}"
 
       - name: Add Buildkite Emoji
         uses: slackapi/slack-github-action@v1
