@@ -1,13 +1,13 @@
-name: Notify Slack of PR Closure
+name: Notify Slack of PR Merged
 
 on:
   pull_request:
     types: [closed]
 
 jobs:
-  slack-notification-close:
+  slack-notification-merged:
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.merged == false }}
+    if: ${{ github.event.pull_request.merged == true }}
     steps:
       - name: Check for Artifact
         id: check-artifact
@@ -18,8 +18,10 @@ jobs:
           if [[ -n "$ARTIFACT_ID" ]]; then
             echo "ARTIFACT_EXISTS=true" >> $GITHUB_ENV
             echo "ARTIFACT_ID=$ARTIFACT_ID" >> $GITHUB_ENV
+            echo "Artifact ID found"
           else
             echo "ARTIFACT_EXISTS=false" >> $GITHUB_ENV
+            echo "Artifact ID not found"
           fi
         env:
           GH_TOKEN: ${{ secrets.GHCR_ACCESS_KEY }}
@@ -33,10 +35,12 @@ jobs:
           THREAD_TS=$(cat artifact_contents/slack_thread_ts_${{github.event.pull_request.number}}.txt)
           echo "THREAD_TS=$THREAD_TS" >> $GITHUB_ENV
           echo "Applying Thread TS TO $THREAD_TS"
-        if: ${{ env.ARTIFACT_EXISTS == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
-      - name: Add PR Closed Emoji
+        if: ${{ env.ARTIFACT_EXISTS == 'true' }}
+      - name: Add PR Merged
+        id: pr-comment
         uses: slackapi/slack-github-action@v2.0.0
-        if: ${{ env.ARTIFACT_EXISTS == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
+        if: ${{ env.ARTIFACT_EXISTS == 'true' }}
+        continue-on-error: true
         with:
           errors: true
           method: reactions.add
@@ -44,15 +48,15 @@ jobs:
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             timestamp: ${{ env.THREAD_TS }}
-            name: "pr-closed"
-      - name: Add who closed the PR
+            name: "merged"
+      - name: Add who merged the PR
         uses: slackapi/slack-github-action@v2.0.0
-        if: ${{ env.ARTIFACT_EXISTS == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
+        if: ${{ steps.pr-comment.outcome != 'failure' && env.ARTIFACT_EXISTS == 'true' }}
         with:
           errors: true
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
-            thread_ts: ${{ env.THREAD_TS }}
-            text: "PR Closed by ${{ github.actor }}"
+            thread_ts: "${{ env.THREAD_TS }}"
+            text: "Merged by ${{ github.actor }}"
