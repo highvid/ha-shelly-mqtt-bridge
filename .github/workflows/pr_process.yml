@@ -24,7 +24,8 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
       - name: Debug Timestamp
-        run: echo "Timestamp: ${{ steps.slack-message.outputs.slack-message-ts }}"
+        run: |
+          echo "Timestamp: ${{ steps.slack-message.outputs.slack-message-ts }}"
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
 
       - name: Add Buildkite Emoji
