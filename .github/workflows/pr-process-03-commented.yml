@@ -5,7 +5,7 @@ on:
     types: [submitted]
 
 jobs:
-  slack-notification-close:
+  slack-notification-comment:
     runs-on: ubuntu-latest
     if: github.event.review.state == 'COMMENTED'
     steps:
@@ -35,10 +35,10 @@ jobs:
           THREAD_TS=$(cat artifact_contents/slack_thread_ts_${{github.event.pull_request.number}}.txt)
           echo "THREAD_TS=$THREAD_TS" >> $GITHUB_ENV
           echo "Applying Thread TS TO $THREAD_TS"
-        if: ${{ env.ARTIFACT_EXISTS == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
+        if: ${{ env.ARTIFACT_EXISTS == 'true'
       - name: Add PR Commented Emoji
         uses: slackapi/slack-github-action@v2.0.0
-        if: ${{ env.ARTIFACT_EXISTS == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
+        if: ${{ env.ARTIFACT_EXISTS == 'true'
         with:
           errors: true
           method: reactions.add
@@ -49,7 +49,7 @@ jobs:
             name: "comment_added"
       - name: Add who commented the PR
         uses: slackapi/slack-github-action@v2.0.0
-        if: ${{ env.ARTIFACT_EXISTS == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
+        if: ${{ env.ARTIFACT_EXISTS == 'true'
         with:
           errors: true
           method: chat.postMessage
