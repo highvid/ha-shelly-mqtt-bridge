@@ -9,6 +9,25 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.merged == false }}
     steps:
+      - name: Get GitHub actor full name
+        id: get_actor_name
+        run: |
+          ACTOR="${{ github.actor }}"
+          USER_DATA=$(curl -s https://api.github.com/users/$ACTOR)
+          FULL_NAME=$(echo "$USER_DATA" | jq -r '.name')
+          echo "actor_full_name=${FULL_NAME}" >> $GITHUB_OUTPUT
+      - name: Find Slack ID via Slack API
+        id: find_slack_user
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          ACTOR_NAME: ${{ steps.get_actor_name.outputs.actor_full_name }}
+        run: |
+          USERS_LIST=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" https://slack.com/api/users.list)
+          MATCHED_ID=$(echo $USERS_LIST | jq -r --arg NAME "$ACTOR_NAME" '.members[] | select(.real_name==$NAME) | .id')
+          if [ -z "$MATCHED_ID" ]; then
+            MATCHED_ID="NOT_FOUND"
+          fi
+          echo "slack_user_id=$MATCHED_ID" >> $GITHUB_OUTPUT
       - name: Check for Artifact
         id: check-artifact
         run: |
@@ -33,11 +52,10 @@ jobs:
           unzip artifact.zip -d artifact_contents
           THREAD_TS=$(cat artifact_contents/slack_thread_ts_${{github.event.pull_request.number}}.txt)
           echo "thread_ts=$THREAD_TS" >> $GITHUB_OUTPUT
-          echo "Applying Thread TS TO $THREAD_TS"
-        if: ${{ steps.check-artifact.outputs.artifact_exists == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
+        if: ${{ steps.check-artifact.outputs.artifact_exists == 'true' }}
       - name: Add PR Closed Emoji
         uses: slackapi/slack-github-action@v2.0.0
-        if: ${{ steps.check-artifact.outputs.artifact_exists == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
+        if: ${{ steps.check-artifact.outputs.artifact_exists == 'true' }}
         with:
           errors: true
           method: reactions.add
@@ -48,12 +66,12 @@ jobs:
             name: "pr-closed"
       - name: Add who closed the PR
         uses: slackapi/slack-github-action@v2.0.0
-        if: ${{ steps.check-artifact.outputs.artifact_exists == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
+        if: ${{ steps.check-artifact.outputs.artifact_exists == 'true' }}
         with:
           errors: true
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
-            thread_ts: ${{ steps.download-artfiact.outputs.thread_ts }}
-            text: "PR Closed by ${{ github.actor }}"
+            thread_ts: "${{ steps.download-artfiact.outputs.thread_ts }}"
+            text: "PR Closed by <@${{ steps.find_slack_user.outputs.slack_user_id }}>"

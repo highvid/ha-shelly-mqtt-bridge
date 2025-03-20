@@ -9,6 +9,25 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.review.state == 'APPROVED'
     steps:
+      - name: Get GitHub actor full name
+        id: get_actor_name
+        run: |
+          ACTOR="${{ github.actor }}"
+          USER_DATA=$(curl -s https://api.github.com/users/$ACTOR)
+          FULL_NAME=$(echo "$USER_DATA" | jq -r '.name')
+          echo "actor_full_name=${FULL_NAME}" >> $GITHUB_OUTPUT
+      - name: Find Slack ID via Slack API
+        id: find_slack_user
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          ACTOR_NAME: ${{ steps.get_actor_name.outputs.actor_full_name }}
+        run: |
+          USERS_LIST=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" https://slack.com/api/users.list)
+          MATCHED_ID=$(echo $USERS_LIST | jq -r --arg NAME "$ACTOR_NAME" '.members[] | select(.real_name==$NAME) | .id')
+          if [ -z "$MATCHED_ID" ]; then
+            MATCHED_ID="NOT_FOUND"
+          fi
+          echo "slack_user_id=$MATCHED_ID" >> $GITHUB_OUTPUT
       - name: Check for Artifact
         id: check-artifact
         run: |
@@ -16,16 +35,15 @@ jobs:
                                 -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/actions/artifacts" | \
                         jq -r '.artifacts | map(select(.name == "slack-thread-ts-${{ github.event.pull_request.number }}")) | sort_by(.created_at)  | .[-1].id')
           if [[ -n "$ARTIFACT_ID" ]]; then
-            echo "ARTIFACT_EXISTS=true" >> $GITHUB_ENV
-            echo "ARTIFACT_ID=$ARTIFACT_ID" >> $GITHUB_ENV
-            echo "Artifact ID found"
+            echo "artifact_exists=true" >> $GITHUB_OUTPUT
+            echo "artifact_id=$ARTIFACT_ID" >> $GITHUB_OUTPUT
           else
-            echo "ARTIFACT_EXISTS=false" >> $GITHUB_ENV
-            echo "Artifact ID not found"
+            echo "artifact_exists=false" >> $GITHUB_OUTPUT
           fi
         env:
           GH_TOKEN: ${{ secrets.GHCR_ACCESS_KEY }}
       - name: Download Artifact
+        id: download-artifact
         run: |
           curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
@@ -33,13 +51,12 @@ jobs:
             -o artifact.zip
           unzip artifact.zip -d artifact_contents
           THREAD_TS=$(cat artifact_contents/slack_thread_ts_${{github.event.pull_request.number}}.txt)
-          echo "THREAD_TS=$THREAD_TS" >> $GITHUB_ENV
-          echo "Applying Thread TS TO $THREAD_TS"
-        if: ${{ env.ARTIFACT_EXISTS == 'true' }}
+          echo "thread_ts=$THREAD_TS" >> $GITHUB_OUTPUT
+        if: ${{ steps.check-artifact.outputs.artifact_exists == 'true' }}
       - name: Add PR Approved
         id: pr-comment
         uses: slackapi/slack-github-action@v2.0.0
-        if: ${{ env.ARTIFACT_EXISTS == 'true' }}
+        if: ${{ steps.check-artifact.outputs.artifact_exists == 'true' }}
         continue-on-error: true
         with:
           errors: true
@@ -47,16 +64,16 @@ jobs:
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
-            timestamp: ${{ env.THREAD_TS }}
+            timestamp: ${{ steps.download-artfiact.outputs.thread_ts }}
             name: "tick"
       - name: Add who commented the PR
         uses: slackapi/slack-github-action@v2.0.0
-        if: ${{ steps.pr-comment.outcome != 'failure' && env.ARTIFACT_EXISTS == 'true' }}
+        if: ${{ steps.pr-comment.outcome != 'failure' && steps.check-artifact.outputs.artifact_exists == 'true' }}
         with:
           errors: true
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
-            thread_ts: "${{ env.THREAD_TS }}"
-            text: "Approved by ${{ github.actor }}"
+            thread_ts: "${{ steps.download-artfiact.outputs.thread_ts }}"
+            text: "Approved by <@${{ steps.find_slack_user.outputs.slack_user_id }}>"
