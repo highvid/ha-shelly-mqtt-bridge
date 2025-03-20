@@ -25,7 +25,8 @@ jobs:
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
       - name: Debug Timestamp
         run: |
-          echo "Timestamp: ${{ steps.slack-message.outputs.slack-message-ts }}"
+          echo "Slack Outputs:"
+          echo "${{ toJSON(steps.slack-message.outputs) }}"
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
 
       - name: Add Buildkite Emoji
