@@ -8,6 +8,25 @@ jobs:
   slack-notification:
     runs-on: ubuntu-latest
     steps:
+      - name: Get GitHub actor full name
+        id: get_actor_name
+        run: |
+          ACTOR="${{ github.actor }}"
+          USER_DATA=$(curl -s https://api.github.com/users/$ACTOR)
+          FULL_NAME=$(echo "$USER_DATA" | jq -r '.name')
+          echo "actor_full_name=${FULL_NAME}" >> $GITHUB_OUTPUT
+      - name: Find Slack ID via Slack API
+        id: find_slack_user
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          ACTOR_NAME: ${{ steps.get_actor_name.outputs.actor_full_name }}
+        run: |
+          USERS_LIST=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" https://slack.com/api/users.list)
+          MATCHED_ID=$(echo $USERS_LIST | jq -r --arg NAME "$ACTOR_NAME" '.members[] | select(.real_name==$NAME) | .id')
+          if [ -z "$MATCHED_ID" ]; then
+            MATCHED_ID="${{ github.actor }}"
+          fi
+          echo "slack_user_id=$MATCHED_ID" >> $GITHUB_OUTPUT
       - name: Send Slack Notification
         id: slack-message
         uses: slackapi/slack-github-action@v2.0.0
@@ -16,7 +35,7 @@ jobs:
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
-            text: "${{ github.event.pull_request.user.login }} created PR <${{ github.event.pull_request.html_url }}|#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}>"
+            text: "Please review PR <${{ github.event.pull_request.html_url }}|#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}> by <@${{ steps.find_slack_user.outputs.slack_user_id }}>"
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' ||  github.event.action == 'reopened')
 
       - name: Debug Message TS
