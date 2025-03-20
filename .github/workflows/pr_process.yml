@@ -56,7 +56,6 @@ jobs:
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
 
       - name: Remove Tick Emoji if all reviews dismissed
-        uses: slackapi/slack-github-action@v1
         if: github.event_name == 'pull_request_review' && github.event.review.state == 'dismissed'
         run: |
           REVIEWS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews --jq '.[] | .state' | grep -c approved)
