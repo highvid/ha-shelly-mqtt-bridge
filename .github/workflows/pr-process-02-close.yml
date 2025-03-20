@@ -33,7 +33,7 @@ jobs:
           echo "THREAD_TS=$THREAD_TS" >> $GITHUB_ENV
           echo "Applying Thread TS TO $THREAD_TS"
         if: ${{ env.ARTIFACT_EXISTS == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
-      - name: Add X Emoji (Closed)
+      - name: Add PR Closed Emoji
         uses: slackapi/slack-github-action@v2.0.0
         if: ${{ env.ARTIFACT_EXISTS == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
         with:
@@ -44,3 +44,14 @@ jobs:
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             timestamp: ${{ env.THREAD_TS }}
             name: "pr-closed"
+      - name: Add who closed the PR
+        uses: slackapi/slack-github-action@v2.0.0
+        if: ${{ env.ARTIFACT_EXISTS == 'true' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false }}
+        with:
+          errors: true
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL_ID }}
+            thread_ts: ${{ env.THREAD_TS }}
+            text: "PR Closed by ${{ github.event.pull_request.closed_by.login }}"
