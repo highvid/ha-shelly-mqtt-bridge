@@ -1,12 +1,10 @@
-name: PR Slack Notifications
+name: PR Slack Notifications Create
 
 on:
   pull_request:
-    types: [opened, closed, reopened]
-  check_suite:
-    types: [completed]
+    types: [opened, reopened]
   pull_request_review:
-    types: [submitted, dismissed]
+    types: [submitted]
 
 jobs:
   slack-notification:
@@ -26,4 +24,10 @@ jobs:
       - name: Debug Message TS
         run: |
           echo "Message TS: ${{ steps.slack-message.outputs.ts  }}"
+        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: "slack-thread-ts-${{ github.event.pull_request.number }}"
+          path: "slack_thread_ts_${{github.event.pull_request.number}}.txt"
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
