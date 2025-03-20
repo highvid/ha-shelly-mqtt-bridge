@@ -57,4 +57,4 @@ jobs:
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             thread_ts: ${{ env.THREAD_TS }}
-            text: "PR Closed by ${{ github.actor }}"
+            text: "Comments by ${{ github.actor }}"
