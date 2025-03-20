@@ -27,7 +27,7 @@ jobs:
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
       - name: Save Thread TS
         run: |
-          echo "{{ steps.slack-message.outputs.ts  }}" > slack_thread_ts_${{github.event.pull_request.number}}.txt
+          echo "${{ steps.slack-message.outputs.ts  }}" > slack_thread_ts_${{github.event.pull_request.number}}.txt
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
