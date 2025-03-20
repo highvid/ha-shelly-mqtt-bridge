@@ -54,4 +54,4 @@ jobs:
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             thread_ts: ${{ env.THREAD_TS }}
-            text: "PR Closed by ${{ github.event.pull_request.closed_by.login }}"
+            text: "PR Closed by ${{ github.actor }}"
