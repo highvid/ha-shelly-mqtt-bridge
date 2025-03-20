@@ -26,45 +26,31 @@ jobs:
           echo "SLACK_RESPONSE=$RESPONSE" >> $GITHUB_ENV
           MESSAGE_TS=$(echo "$RESPONSE" | jq -r '.ts')
           echo "MESSAGE_TS=$MESSAGE_TS" >> $GITHUB_ENV
-        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
-      - name: Debug Timestamp
-        run: |
-          echo "Slack Outputs:"
-          echo '${{ toJSON(steps) }}'
-          echo "MESSAGE TS : ${{env.MESSAGE_TS}}"
-        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
+        if: github.event_name == 'pull_request' && (github.event.action == 'opened' ||  || github.event.action == 'reopened')
+
+      - name: Debug Message TS
+        run: echo "Message TS: ${{ env.MESSAGE_TS }}"
+        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened'))
 
       - name: Add Buildkite Emoji
-        uses: slackapi/slack-github-action@v1
+        uses: slackapi/slack-github-action@v1/reaction-add
         if: github.event_name == 'check_suite' && github.event.check_suite.conclusion == 'success'
         with:
-          update-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          name: buildkite
           channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
-          payload: |
-            {
-              "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
-              "timestamp": "${{ steps.slack-message.outputs.slack-message-ts }}",
-              "text": ":buildkite:"
-            }
+          timestamp: ${{ env.MESSAGE_TS }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
 
-      - name: Add/Remove Tick Emoji (Review)
-        uses: slackapi/slack-github-action@v1
-        id: review-action
-        if: github.event_name == 'pull_request_review'
+      - name: Add Tick Emoji (Review)
+        uses: slackapi/slack-github-action@v1/reaction-add
+        if: github.event_name == 'pull_request_review' && github.event.review.state == 'approved'
         with:
-          update-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
-          payload: |
-            {
-              "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
-              "timestamp": "${{ steps.slack-message.outputs.slack-message-ts }}",
-              "text": "${{ (github.event.review.state == 'approved' || github.event.review.state == 'dismissed') && (github.event.review.state == 'approved' && ':tick:' || ':tick:') }}"
-            }
+          name: tick
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          timestamp: ${{ env.MESSAGE_TS }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
 
       - name: Remove Tick Emoji if all reviews dismissed
         if: github.event_name == 'pull_request_review' && github.event.review.state == 'dismissed'
@@ -72,52 +58,39 @@ jobs:
           REVIEWS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews --jq '.[] | .state' | grep -c approved)
           if [[ "$REVIEWS" -eq 0 ]]; then
             echo "All reviews dismissed, removing tick."
-            echo "SLACK_PAYLOAD={\"channel\":\"${{ secrets.SLACK_CHANNEL_ID }}\",\"timestamp\":\"${{ steps.slack-message.outputs.slack-message-ts }}\",\"text\":\":tick:\"}" >> $GITHUB_ENV
+            echo "SLACK_PAYLOAD={\"channel\":\"${{ secrets.SLACK_CHANNEL_ID }}\",\"timestamp\":\"${{ env.MESSAGE_TS }}\",\"name\":\"remove_tick\"}" >> $GITHUB_ENV
           else
             echo "Approved reviews still exist, skipping tick removal."
           fi
         env:
-          GH_TOKEN: ${{ secrets.GHCR_ACCESS_KEY }}
+          GHCR_ACCESS_KEY: ${{ secrets.GHCR_ACCESS_KEY }}
 
       - name: Remove Tick Emoji
-        uses: slackapi/slack-github-action@v1
+        uses: slackapi/slack-github-action@v1/reaction-remove
         if: env.SLACK_PAYLOAD
         with:
-          update-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
           channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
-          payload: ${{ env.SLACK_PAYLOAD }}
+          timestamp: ${{ env.MESSAGE_TS }}
+          name: remove_tick
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
 
       - name: Add Merged Emoji
-        uses: slackapi/slack-github-action@v1
+        uses: slackapi/slack-github-action@v1/reaction-add
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
         with:
-          update-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          name: merged
           channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
-          payload: |
-            {
-              "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
-              "timestamp": "${{ steps.slack-message.outputs.slack-message-ts }}",
-              "text": ":merged:"
-            }
+          timestamp: ${{ env.MESSAGE_TS }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
 
       - name: Add X Emoji (Closed)
-        uses: slackapi/slack-github-action@v1
+        uses: slackapi/slack-github-action@v1/reaction-add
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
         with:
-          update-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          name: x
           channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
-          payload: |
-            {
-              "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
-              "timestamp": "${{ steps.slack-message.outputs.slack-message-ts }}",
-              "text": ":x:"
-            }
+          timestamp: ${{ env.MESSAGE_TS }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
