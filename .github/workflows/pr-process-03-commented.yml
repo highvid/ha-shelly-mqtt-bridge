@@ -58,5 +58,5 @@ jobs:
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
-            thread_ts: "${{ env.THREAD_TS }}""
+            thread_ts: "${{ env.THREAD_TS }}"
             text: "Comments by ${{ github.actor }}"
