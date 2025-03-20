@@ -26,7 +26,7 @@ jobs:
           echo "SLACK_RESPONSE=$RESPONSE" >> $GITHUB_ENV
           MESSAGE_TS=$(echo "$RESPONSE" | jq -r '.ts')
           echo "MESSAGE_TS=$MESSAGE_TS" >> $GITHUB_ENV
-        if: github.event_name == 'pull_request' && (github.event.action == 'opened' ||  || github.event.action == 'reopened')
+        if: github.event_name == 'pull_request' && (github.event.action == 'opened' ||  github.event.action == 'reopened')
 
       - name: Debug Message TS
         run: |
