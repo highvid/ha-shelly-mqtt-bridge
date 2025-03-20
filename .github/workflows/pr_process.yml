@@ -13,20 +13,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send Slack Notification
-        uses: slackapi/slack-github-action@v1
         id: slack-message
-        with:
-          payload: |
-            {
-              "text": "${{ github.event.pull_request.user.login }} created PR <${{ github.event.pull_request.html_url }}|#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}>"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          PAYLOAD=$(cat <<EOF
+          {
+            "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
+            "text": "${{ github.event.pull_request.user.login }} created PR <${{ github.event.pull_request.html_url }}|#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}>"
+          }
+          EOF
+          )
+          RESPONSE=$(curl -X POST -H 'Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}' -H 'Content-type: application/json' --data "$PAYLOAD" https://slack.com/api/chat.postMessage)
+          echo "SLACK_RESPONSE=$RESPONSE" >> $GITHUB_ENV
+          MESSAGE_TS=$(echo "$RESPONSE" | jq -r '.ts')
+          echo "MESSAGE_TS=$MESSAGE_TS" >> $GITHUB_ENV
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
       - name: Debug Timestamp
         run: |
           echo "Slack Outputs:"
           echo '${{ toJSON(steps) }}'
+          echo "MESSAGE TS : ${{env.MESSAGE_TS}}"
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
 
       - name: Add Buildkite Emoji
