@@ -26,7 +26,7 @@ jobs:
           echo "Message TS: ${{ steps.slack-message.outputs.ts  }}"
         if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "slack-thread-ts-${{ github.event.pull_request.number }}"
           path: "slack_thread_ts_${{github.event.pull_request.number}}.txt"
