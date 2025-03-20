@@ -23,8 +23,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GHCR_ACCESS_KEY }}
       - name: Download Artifact
-        uses: actions/download-artifact@v4
-        user: ubuntu-latest
         run: |
           curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
