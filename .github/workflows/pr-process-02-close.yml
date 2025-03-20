@@ -1,4 +1,4 @@
-name: PR Slack Notifications Close
+name: PR Closed
 
 on:
   pull_request:
@@ -42,3 +42,5 @@ jobs:
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             timestamp: ${{ env.THREAD_TS }}
             name: "pr-closed"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
