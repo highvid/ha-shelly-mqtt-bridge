@@ -64,7 +64,7 @@ jobs:
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
-            timestamp: ${{ steps.download-artfiact.outputs.thread_ts }}
+            timestamp: ${{ steps.download-artifact.outputs.thread_ts }}
             name: "tick"
       - name: Add who commented the PR
         uses: slackapi/slack-github-action@v2.0.0
@@ -75,5 +75,5 @@ jobs:
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
-            thread_ts: "${{ steps.download-artfiact.outputs.thread_ts }}"
+            thread_ts: "${{ steps.download-artifact.outputs.thread_ts }}"
             text: "Approved by <@${{ steps.find_slack_user.outputs.slack_user_id }}>"
