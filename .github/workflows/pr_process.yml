@@ -28,7 +28,7 @@ jobs:
         uses: slackapi/slack-github-action@v1
         if: github.event_name == 'check_suite' && github.event.check_suite.conclusion == 'success'
         with:
-          slack-message-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          update-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
           payload: |
             {
               "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
@@ -44,7 +44,7 @@ jobs:
         id: review-action
         if: github.event_name == 'pull_request_review'
         with:
-          slack-message-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          update-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
           payload: |
             {
               "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
@@ -72,7 +72,7 @@ jobs:
         uses: slackapi/slack-github-action@v1
         if: env.SLACK_PAYLOAD
         with:
-          slack-message-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          update-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
           payload: ${{ env.SLACK_PAYLOAD }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -82,7 +82,7 @@ jobs:
         uses: slackapi/slack-github-action@v1
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
         with:
-          slack-message-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          update-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
           payload: |
             {
               "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
@@ -97,7 +97,7 @@ jobs:
         uses: slackapi/slack-github-action@v1
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
         with:
-          slack-message-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
+          update-ts: ${{ steps.slack-message.outputs.slack-message-ts }}
           payload: |
             {
               "channel": "${{ secrets.SLACK_CHANNEL_ID }}",
