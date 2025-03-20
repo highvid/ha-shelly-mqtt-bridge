@@ -39,6 +39,7 @@ jobs:
       - name: Add PR Commented Emoji
         uses: slackapi/slack-github-action@v2.0.0
         if: ${{ env.ARTIFACT_EXISTS == 'true' }}
+        continue-on-error: true
         with:
           errors: true
           method: reactions.add
@@ -49,7 +50,7 @@ jobs:
             name: "comment_added"
       - name: Add who commented the PR
         uses: slackapi/slack-github-action@v2.0.0
-        if: ${{ env.ARTIFACT_EXISTS == 'true' }}
+        if: ${{ success() && env.ARTIFACT_EXISTS == 'true' }}
         with:
           errors: true
           method: chat.postMessage
