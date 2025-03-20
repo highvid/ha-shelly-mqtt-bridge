@@ -1,0 +1,35 @@
+name: Notify Slack of PR Creation
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  slack-notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack Notification
+        id: slack-message
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL_ID }}
+            text: "${{ github.event.pull_request.user.login }} created PR <${{ github.event.pull_request.html_url }}|#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}>"
+        if: github.event_name == 'pull_request' && (github.event.action == 'opened' ||  github.event.action == 'reopened')
+
+      - name: Debug Message TS
+        run: |
+          echo "Message TS: ${{ steps.slack-message.outputs.ts  }}"
+        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
+      - name: Save Thread TS
+        run: |
+          echo "${{ steps.slack-message.outputs.ts  }}" > slack_thread_ts_${{github.event.pull_request.number}}.txt
+        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "slack-thread-ts-${{ github.event.pull_request.number }}"
+          path: "slack_thread_ts_${{github.event.pull_request.number}}.txt"
+        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
