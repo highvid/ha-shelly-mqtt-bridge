@@ -74,4 +74,4 @@ jobs:
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             thread_ts: "${{ steps.download-artifact.outputs.thread_ts }}"
-            text: "PR Closed by <@${{ steps.find_slack_user.outputs.slack_user_id }}>"
+            text: ":pr-closed: PR Closed by <@${{ steps.find_slack_user.outputs.slack_user_id }}>"
