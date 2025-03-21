@@ -6,7 +6,7 @@ on:
 jobs:
   slack-notification-ci-results:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.context, 'ci/circleci')
+    if: startsWith(github.event.check_run.name, 'ci/circleci') || github.event.check_run.app.slug == 'circleci'
 
     steps:
       - name: Debug status payload
