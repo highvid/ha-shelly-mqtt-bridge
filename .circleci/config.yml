@@ -27,9 +27,7 @@ jobs:
           name: rubocop test
           command: bundle exec rubocop
 workflows:
-  build-and-test:
+  run-tests:
     jobs:
       - rspec-tests
-      - rubocop-tests:
-          requires:
-            - rspec-tests
+      - rubocop-tests
