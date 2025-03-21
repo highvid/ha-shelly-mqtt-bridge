@@ -49,3 +49,45 @@ jobs:
         with:
           name: "slack-thread-ts-${{ github.event.pull_request.number }}"
           path: "slack_thread_ts_${{github.event.pull_request.number}}.txt"
+      - name: Query commit status for latest SHA
+        id: status_check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          STATUS_JSON=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/commits/$SHA/status")
+
+          echo "$STATUS_JSON" | jq '.'
+
+          STATE=$(echo "$STATUS_JSON" | jq -r '.statuses[] | select(.context == "ci/circleci: build") | .state' | head -n 1)
+
+          if [ -z "$STATE" ]; then
+            STATE="no-status"
+          fi
+
+          echo "status=$CIRCLE_STATE" >> $GITHUB_OUTPUT
+      - name: Add Status Check Failure
+        id: pr-comment-add
+        uses: slackapi/slack-github-action@v2.0.0
+        if: ${{ steps.status_check.outputs.status == 'failure' }}
+        with:
+          errors: false
+          method: reactions.add
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL_ID }}
+            timestamp: ${{ steps.slack-message.outputs.ts }}
+            name: "rotating-light-red"
+      - name: Remove Status Check Failure
+        id: pr-comment-remove
+        uses: slackapi/slack-github-action@v2.0.0
+        if: ${{ steps.status_check.outputs.status == 'success' }}
+        with:
+          errors: false
+          method: reactions.remove
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL_ID }}
+            timestamp: ${{ steps.slack-message.outputs.ts }}
+            name: "rotating-light-red"
