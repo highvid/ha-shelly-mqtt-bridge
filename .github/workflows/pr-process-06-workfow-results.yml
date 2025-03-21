@@ -5,7 +5,8 @@ on:
 jobs:
   slack-notification-ci-results:
     runs-on: ubuntu-latest
-    if: github.event.state == 'success' || github.event.state == 'failure'
+    if: startsWith(github.event.context, 'ci/circleci')
+    
     steps:
       - name: Debug status payload
         run: echo '${{ toJson(github.event) }}'
