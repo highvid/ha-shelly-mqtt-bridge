@@ -1,0 +1,9 @@
+on:
+  status:
+
+jobs:
+  debug-check-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print full event payload
+        run: echo '${{ toJson(github.event) }}'
