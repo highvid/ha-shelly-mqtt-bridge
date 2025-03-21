@@ -9,8 +9,8 @@ gem 'mqtt'
 gem 'zeitwerk'
 
 group :development, :test do
-  gem 'pry'
   gem 'irb'
+  gem 'pry'
   gem 'rspec'
   gem 'rubocop'
 end
