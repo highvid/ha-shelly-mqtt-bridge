@@ -22,7 +22,9 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           ACTOR_NAME: ${{ steps.get_actor_name.outputs.actor_full_name }}
         run: |
+          echo "Searching for $ACTOR_NAME in slack"
           USERS_LIST=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" https://slack.com/api/users.list)
+          echo "User data is $USERS_LIST"
           MATCHED_ID=$(echo $USERS_LIST | jq -r --arg NAME "$ACTOR_NAME" '.members[] | select(.real_name==$NAME) | .id')
           if [ -z "$MATCHED_ID" ]; then
             MATCHED_ID="${{ github.actor }}"
