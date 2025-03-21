@@ -1,6 +1,5 @@
 on:
-  check_run:
-    types: [completed]
+  status:
 
 jobs:
   debug-check-run:
