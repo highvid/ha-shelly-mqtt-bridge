@@ -11,5 +11,6 @@ gem 'zeitwerk'
 group :development, :test do
   gem 'irb'
   gem 'pry'
+  gem 'rspec'
   gem 'rubocop'
 end
