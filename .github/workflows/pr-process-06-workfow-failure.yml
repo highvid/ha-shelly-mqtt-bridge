@@ -1,10 +1,10 @@
-name: Notify Slack of CI Failure
+name: Notify Slack CI Results
 
 on:
   check_suite:
     types: [completed]
 jobs:
-  slack-notification-ci-failure:
+  slack-notification-ci-results:
     runs-on: ubuntu-latest
     if: >
       github.event.check_suite.pull_requests[0] != null &&
