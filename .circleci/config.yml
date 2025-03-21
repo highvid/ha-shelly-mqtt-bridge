@@ -1,0 +1,33 @@
+version: 2.1
+orbs:
+  ruby: circleci/ruby@2.0.1
+jobs:
+  rspec-tests:
+    # Install gems, run rspec tests
+    docker:
+      - image: cimg/ruby:3.4.2-node
+    environment:
+      RAILS_ENV: test
+    steps:
+      - checkout
+      - ruby/install-deps
+      - run:
+          name: rspec test
+          command: bundle exec rspec
+  rubocop-tests:
+    # Install gems, run rspec tests
+    docker:
+      - image: cimg/ruby:3.4.2-node
+    environment:
+      RAILS_ENV: test
+    steps:
+      - checkout
+      - ruby/install-deps
+      - run:
+          name: rubocop test
+          command: bundle exec rubocop
+workflows:
+  run-tests:
+    jobs:
+      - rspec-tests
+      - rubocop-tests
