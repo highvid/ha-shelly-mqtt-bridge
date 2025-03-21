@@ -76,4 +76,4 @@ jobs:
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             thread_ts: "${{ steps.download-artifact.outputs.thread_ts }}"
-            text: "Merged by <@${{ steps.find_slack_user.outputs.slack_user_id }}>"
+            text: ":merged: Merged by <@${{ steps.find_slack_user.outputs.slack_user_id }}>"
