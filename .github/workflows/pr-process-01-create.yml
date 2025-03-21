@@ -7,6 +7,7 @@ on:
 jobs:
   slack-notification:
     runs-on: ubuntu-latest
+    if: 
     steps:
       - name: Get GitHub actor full name
         id: get_actor_name
@@ -36,19 +37,15 @@ jobs:
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             text: "Please review PR <${{ github.event.pull_request.html_url }}|#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}> by <@${{ steps.find_slack_user.outputs.slack_user_id }}>"
-        if: github.event_name == 'pull_request' && (github.event.action == 'opened' ||  github.event.action == 'reopened')
 
       - name: Debug Message TS
         run: |
           echo "Message TS: ${{ steps.slack-message.outputs.ts  }}"
-        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
       - name: Save Thread TS
         run: |
           echo "${{ steps.slack-message.outputs.ts  }}" > slack_thread_ts_${{github.event.pull_request.number}}.txt
-        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: "slack-thread-ts-${{ github.event.pull_request.number }}"
           path: "slack_thread_ts_${{github.event.pull_request.number}}.txt"
-        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
