@@ -1,0 +1,26 @@
+name: Tests
+
+on:
+  push:
+
+jobs:
+  slack-notification-ci-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.state == 'failure' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4.2 # or match your `.ruby-version`
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle install --jobs 4 --retry 3
+
+      - name: Run RSpec
+        run: |
+          bundle exec rspec
