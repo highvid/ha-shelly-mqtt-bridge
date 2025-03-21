@@ -49,39 +49,3 @@ jobs:
         with:
           name: "slack-thread-ts-${{ github.event.pull_request.number }}"
           path: "slack_thread_ts_${{github.event.pull_request.number}}.txt"
-      - name: Status Checks
-        id: status-checks
-        env:
-          GITHUB_TOKEN: ${{ secrets.GHCR_ACCESS_KEY }}
-          SHA: ${{ github.event.pull_request.head.sha }}
-          OWNER: ${{ github.repository_owner }}
-          REPO: ${{ github.event.repository.name }}
-        run: |
-          echo "Checking status checks for commit: $SHA"
-          
-          # Call GitHub API for commit status
-          STATUS_JSON=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            https://api.github.com/repos/$OWNER/$REPO/commits/$SHA/status)
-          
-          echo "$STATUS_JSON" | jq '.'
-
-          STATE=$(echo "$STATUS_JSON" | jq -r '.state')
-
-          echo "Current combined status: $STATE"
-          
-          if [ "$STATE" == "failure" ]; then
-            echo "success_state=false" >> $GITHUB_OUTPUT
-          else
-            echo "success_state=true" >> $GITHUB_OUTPUT
-          fi
-      - name: Add failure of status
-        uses: slackapi/slack-github-action@v2.0.0
-        if: ${{ steps.status-checks.outputs.success_state == 'false' }}
-        with:
-          errors: true
-          method: reactions.add
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
-          payload: |
-            channel: ${{ secrets.SLACK_CHANNEL_ID }}
-            timestamp: ${{ steps.slack-message.outputs.ts }}
-            name: ":rotating-light-red:"
