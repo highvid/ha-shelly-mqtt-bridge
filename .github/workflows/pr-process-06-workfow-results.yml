@@ -1,4 +1,4 @@
-name: Notify Slack CI Results
+name: Notify Slack of CI Results
 
 on:
   status:
