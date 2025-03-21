@@ -1,17 +1,32 @@
 name: Notify Slack CI Results
 
 on:
-  check_suite:
+  status:
     types: [completed]
 jobs:
   slack-notification-ci-results:
     runs-on: ubuntu-latest
     if: >
-      github.event.check_suite.pull_requests[0] != null &&
-      (github.event.check_suite.conclusion == 'success' || github.event.check_suite.conclusion == 'failrue')
+      (github.event.state == 'success' || github.event.state == 'failure')
     steps:
+      - name: Check if commit has an open PR
+        id: check_pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.sha }}
+        run: |
+          PRS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/search/issues?q=repo:${{ github.repository }}+sha:$SHA+is:pr+is:open")
+
+          TOTAL=$(echo "$PRS" | jq '.total_count')
+          if [ "$TOTAL" -gt 0 ]; then
+            echo "pr_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "pr_exists=false" >> $GITHUB_OUTPUT
+          fi
       - name: Check for Artifact
         id: check-artifact
+        if: steps.check_pr.outputs.pr_exists == 'true'
         run: |
           ARTIFACT_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                                 -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/actions/artifacts" | \
@@ -26,6 +41,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GHCR_ACCESS_KEY }}
       - name: Download Artifact
         id: download-artifact
+        if: steps.check_pr.outputs.pr_exists == 'true'
         run: |
           curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
@@ -38,7 +54,7 @@ jobs:
       - name: Add Status Check Failure
         id: pr-comment-add
         uses: slackapi/slack-github-action@v2.0.0
-        if: ${{ steps.check-artifact.outputs.artifact_exists == 'true' && github.event.check_suite.conclusion == 'failure' }}
+        if: ${{ steps.check-artifact.outputs.artifact_exists == 'true' && github.event.state == 'failure' && steps.check_pr.outputs.pr_exists == 'true' }}
         with:
           errors: false
           method: reactions.add
@@ -50,7 +66,7 @@ jobs:
       - name: Remove Status Check Failure
         id: pr-comment-remove
         uses: slackapi/slack-github-action@v2.0.0
-        if: ${{ steps.check-artifact.outputs.artifact_exists == 'true' && github.event.check_suite.conclusion == 'success' }}
+        if: ${{ steps.check-artifact.outputs.artifact_exists == 'true' && github.event.state == 'success' && steps.check_pr.outputs.pr_exists == 'true' }}
         with:
           errors: false
           method: reactions.remove
