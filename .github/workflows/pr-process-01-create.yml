@@ -9,25 +9,41 @@ jobs:
     runs-on: ubuntu-latest
     if: 
     steps:
-      - name: Get GitHub actor full name
-        id: get_actor_name
-        run: |
-          ACTOR="${{ github.actor }}"
-          USER_DATA=$(curl -s https://api.github.com/users/$ACTOR)
-          FULL_NAME=$(echo "$USER_DATA" | jq -r '.name')
-          echo "actor_full_name=${FULL_NAME}" >> $GITHUB_OUTPUT
-      - name: Find Slack ID via Slack API
-        id: find_slack_user
+      # - name: Get GitHub actor full name
+      #   id: get_actor_name
+      #   run: |
+      #     ACTOR="${{ github.actor }}"
+      #     USER_DATA=$(curl -s https://api.github.com/users/$ACTOR)
+      #     FULL_NAME=$(echo "$USER_DATA" | jq -r '.name')
+      #     echo "actor_full_name=${FULL_NAME}" >> $GITHUB_OUTPUT
+      - name: Get gitHub actor email
+        id: get_actor_email
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          ACTOR_NAME: ${{ steps.get_actor_name.outputs.actor_full_name }}
+          ACTOR: ${{ gtihub.actor }}
         run: |
-          USERS_LIST=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" https://slack.com/api/users.list)
-          MATCHED_ID=$(echo $USERS_LIST | jq -r --arg NAME "$ACTOR_NAME" '.members[] | select(.real_name==$NAME) | .id')
-          if [ -z "$MATCHED_ID" ]; then
-            MATCHED_ID="${{ github.actor }}"
-          fi
-          echo "slack_user_id=$MATCHED_ID" >> $GITHUB_OUTPUT
+          USER_DATA=$(curl -s https://api.github.com/users/$ACTOR)
+          EMAIL=$(echo "$USER_DATA" | jq -r '.email')
+          echo "email=${EMAIL}" >> $GITHUB_OUTPUT
+      - name: Find Slack ID via Slack API
+        if: endsWith(steps.email_step.outputs.email, '@gmail.com') || endsWith(steps.email_step.outputs.email, '@manvil.me')
+        id: find_slack_user
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          errors: true
+          method: users.lookupByEmail
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            email: ${{ steps.get_actor_email.outputs.email }}
+      - name: Get Slack Info
+        if: ${{ steps.find_slack_user.outputs.ok }}
+        run: |
+          if [ "${{ steps.find_slack_user.outcome }}" = "success" && "${{ steps.slack_lookup.outputs.ok }}" == "true" ]; then
+            SLACK_USER_ID=$(echo '${{ steps.find_slack_user.outputs.response }}' | jq -r '.user.id')
+            echo "slack_user_id=$SLACK_USER_ID >> $GITHUB_OUTPUT
+          else
+            echo "slack_user_id=${{ github.actor }}" >> $GITHUB_OUTPUT
+          end
+
       - name: Send Slack Notification
         id: slack-message
         uses: slackapi/slack-github-action@v2.0.0
@@ -40,7 +56,7 @@ jobs:
 
       - name: Debug Message TS
         run: |
-          echo "Message TS: ${{ steps.slack-message.outputs.ts  }}"
+          echo "Message TS: ${{ steps.slack-message.outputs.ts }}"
       - name: Save Thread TS
         run: |
           echo "${{ steps.slack-message.outputs.ts  }}" > slack_thread_ts_${{github.event.pull_request.number}}.txt
