@@ -1,26 +1,20 @@
 name: Tagged Release
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    types: [closed]
 
 jobs:
   create-release:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion  == 'success' &&
-          github.event.workflow_run.head_branch == 'main' &&
-          github.event.workflow_run.event       == 'push' }}
+    if: ${{ github.event.pull_request.merged == true }}
     permissions:
       contents: write
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-        if: > 
-          ${{ github.event.workflow_run.conclusion  == 'success' &&
-              github.event.workflow_run.head_branch == 'main' &&
-              github.event.workflow_run.event       == 'push' }}
+        if: ${{ github.event.pull_request.merged == true }}
 
       - name: Extract Tag from Commit Message
         id: extract_tag
@@ -37,14 +31,9 @@ jobs:
             echo "Unable to extract tag and message"
             echo "should_continue=false" >> $GITHUB_ENV
           fi
-        if: > 
-          ${{ github.event.workflow_run.conclusion  == 'success' &&
-              github.event.workflow_run.head_branch == 'main' &&
-              github.event.workflow_run.event       == 'push' }}
+        if: ${{ github.event.pull_request.merged == true }}
       - name: Create and Push Tag
-        if: ${{ env.should_continue == 'true' && github.event.workflow_run.conclusion  == 'success' &&
-              github.event.workflow_run.head_branch == 'main' &&
-              github.event.workflow_run.event       == 'push'  }}
+        if: ${{ env.should_continue == 'true' && github.event.pull_request.merged == true }}
         run: |
           git tag ${{ env.custom_tag }}
           git push origin ${{ env.custom_tag }}
@@ -52,9 +41,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GHCR_ACCESS_KEY }}
       - name: Create GitHub Release
         uses: actions/create-release@v1
-        if: ${{ env.should_continue == 'true' && github.event.workflow_run.conclusion  == 'success' &&
-              github.event.workflow_run.head_branch == 'main' &&
-              github.event.workflow_run.event       == 'push'  }}
+        if: ${{ env.should_continue == 'true' && github.event.pull_request.merged == true }}
         env:
           GITHUB_TOKEN: ${{ secrets.GHCR_ACCESS_KEY }}
         with:
