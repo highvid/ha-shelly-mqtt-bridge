@@ -8,7 +8,7 @@ LABEL org.opencontainers.image.source=https://github.com/highvid/ha-shellly-mqtt
 RUN apt update -y && apt-get install -y build-essential ruby-dev libyaml-dev
 
 RUN groupadd -g 1010 highvid
-RUN useradd -u 1010 -g highvid highvid
+RUN useradd -m -u 1010 -g highvid highvid
 
 RUN gem update --system ${RUBY_GEM_SYSTEM_VERSION}
 
