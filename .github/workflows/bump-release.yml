@@ -1,11 +1,9 @@
 name: Tagged Release
 
 on:
-  workflow_run:
-    workflows:
-      - Run Tests
-    types:
-      - completed
+  push:
+    branches:
+      - main
 
 jobs:
   create-release:
