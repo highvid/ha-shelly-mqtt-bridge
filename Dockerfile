@@ -1,6 +1,6 @@
-ARG RUBY_VERSION=3.4.2-slim
+ARG RUBY_VERSION=3.4.3-slim
 ARG BUNDLE_WITHOUT=development:test
-ARG RUBY_GEM_SYSTEM_VERSION=3.6.6
+ARG RUBY_GEM_SYSTEM_VERSION=3.6.8
 ARG BUNDLE_WITHOUT="development test"
 FROM ruby:${RUBY_VERSION}
 LABEL org.opencontainers.image.source=https://github.com/highvid/ha-shellly-mqtt-bridge
