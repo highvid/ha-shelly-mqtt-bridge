@@ -9,7 +9,8 @@ module Device
       'SHSW-25' => Shelly25,
       'SHSW-PM' => Shelly1Pm,
       'SNSW-001P16EU' => ShellyPlus1Pm,
-      'SNSW-102P16EU' => ShellyPlus2Pm
+      'SNSW-102P16EU' => ShellyPlus2Pm,
+      'S4SW-001P16EU' => Shelly1PmGen4
     }.freeze
 
     def initialize(topic, message)
