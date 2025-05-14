@@ -1,4 +1,4 @@
-module Device
+module Components
   module Gen2
     module IterativeSensor
       extend ActiveSupport::Concern
@@ -8,8 +8,8 @@ module Device
 
         def define_sensors(type, count, sensor_klass: :sensor)
           @sensor_array ||= {}
-          gen_klass = Device::Gen2.const_get("#{type.to_s.camelize}Sensor")
-          @sensor_array[gen_klass] = count == 1 ? [type] : (0..(count - 1)).map { |index| "#{type}_#{index}" }
+          gen_klass = Components::Gen2.const_get("#{type.to_s.camelize}Sensor")
+          @sensor_array[gen_klass] = count == 1 ? [type] : (0..(count - 1)).map { |index| "#{type}#{index}" }
           define_sensor_using(sensor_klass, gen_klass, *@sensor_array[gen_klass])
           prepend gen_klass
         end
@@ -23,7 +23,7 @@ module Device
         end
 
         def generate_options(sensor_options, index, only_one: false)
-          options = sensor_options.call(self::DEVICE, self::MANUFACTURER, index)
+          options = sensor_options.call(self::DEVICE, self::MANUFACTURER, index, self::STATE_KEY)
           options[:name] += " #{index}" unless only_one
           options
         end
@@ -40,7 +40,7 @@ module Device
       end
 
       def state_key(klass)
-        klass == Device::Gen2::InputSensor ? 'input' : 'switch'
+        klass == Components::Gen2::InputSensor ? 'input' : self.class::STATE_KEY
       end
     end
   end

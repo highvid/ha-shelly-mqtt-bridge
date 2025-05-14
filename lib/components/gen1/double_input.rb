@@ -1,9 +1,10 @@
-module Device
+module Components
   module Gen1
     module DoubleInput
+      # rubocop:disable Metrics/AbcSize
       def self.prepended(base)
         base.class_eval do
-          binary_sensor :input_0, :input_1,
+          binary_sensor :input0, :input1,
                         configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
                         entity_constructor: lambda { |device, entity_name|
                           { unique_id: "#{device.unique_id}-input-#{entity_name[-1]}" }
@@ -20,6 +21,7 @@ module Device
                         }
         end
       end
+      # rubocop:enable Metrics/AbcSize
 
       def update_info(message)
         super
@@ -28,8 +30,8 @@ module Device
 
       def update_input_info(message)
         json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
-        @input_0.state = json_message[:inputs][0][:input]
-        @input_1.state = json_message[:inputs][1][:input]
+        @input0.state = json_message[:inputs][0][:input]
+        @input1.state = json_message[:inputs][1][:input]
       end
     end
   end

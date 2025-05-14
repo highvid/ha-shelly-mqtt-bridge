@@ -1,6 +1,7 @@
-module Device
+module Components
   module Gen1
     module SingleSwitchOutput
+      # rubocop:disable Metrics/AbcSize
       def self.prepended(base)
         base.class_eval do
           switch  :output,
@@ -20,6 +21,7 @@ module Device
                   state_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/output" }
         end
       end
+      # rubocop:enable Metrics/AbcSize
 
       def update_info(message)
         super

@@ -1,8 +1,8 @@
-module Device
+module Components
   module Gen2
     module OutputSensor
       KEYS = %i[output].freeze
-      SENSOR_OPTIONS = lambda { |device_name, manufacturer_name, index|
+      SENSOR_OPTIONS = lambda { |device_name, manufacturer_name, index, state_key|
         {
           callback: :state_update_callback,
           command_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/command/#{index}" },
@@ -13,7 +13,7 @@ module Device
           json_attributes_topic: lambda { |entity|
             "#{Config::BLIGHVID}/#{entity.device.unique_id}/output/attributes/#{index}"
           },
-          listener_topics: [state: "status/switch:#{index}", state_adapter_method: :output_adapter_method],
+          listener_topics: [state: "status/#{state_key}:#{index}", state_adapter_method: :output_adapter_method],
           manufacturer: manufacturer_name,
           model: device_name,
           name: 'Output',

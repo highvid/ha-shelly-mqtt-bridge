@@ -1,8 +1,8 @@
-module Device
+module Components
   module Gen2
     module InputSensor
       KEYS = %i[state].freeze
-      SENSOR_OPTIONS = lambda { |device_name, manufacturer_name, index|
+      SENSOR_OPTIONS = lambda { |device_name, manufacturer_name, index, _state_key|
         {
           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
           entity_constructor: ->(device) { { unique_id: "#{device.unique_id}-input-#{index}" } },
