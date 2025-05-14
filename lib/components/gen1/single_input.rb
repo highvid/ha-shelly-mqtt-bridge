@@ -1,4 +1,4 @@
-module Device
+module Components
   module Gen1
     module SingleInput
       def self.prepended(base)

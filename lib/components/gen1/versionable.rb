@@ -1,6 +1,7 @@
-module Device
+module Components
   module Gen1
     module Versionable
+      # rubocop:disable Metrics/AbcSize
       def self.prepended(base)
         base.class_eval do
           update  :sw_version,
@@ -23,6 +24,7 @@ module Device
                   state_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/firmware" }
         end
       end
+      # rubocop:enable Metrics/AbcSize
 
       def update_info(message)
         super

@@ -1,8 +1,8 @@
-module Device
+module Components
   module Gen2
     module CurrentSensor
       KEYS = %i[current].freeze
-      SENSOR_OPTIONS = lambda { |device_name, manufacturer_name, index|
+      SENSOR_OPTIONS = lambda { |device_name, manufacturer_name, index, state_key|
         {
           configuration_url: ->(entity) { "http://#{entity.device.ip_address}" },
           device_class: 'current',
@@ -12,7 +12,7 @@ module Device
           json_attributes_topic: lambda { |entity|
             "#{Config::BLIGHVID}/#{entity.device.unique_id}/current/attributes/#{index}"
           },
-          listener_topics: [state: "status/switch:#{index}", state_adapter_method: :current_adapter_method],
+          listener_topics: [state: "status/#{state_key}:#{index}", state_adapter_method: :current_adapter_method],
           manufacturer: manufacturer_name,
           model: device_name,
           name: 'Current',

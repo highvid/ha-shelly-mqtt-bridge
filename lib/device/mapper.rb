@@ -3,14 +3,15 @@ module Device
     attr_reader :topic, :message
 
     CLASS_MAPPER = {
-      'SHDM-2' => ShellyDimmer2,
-      'SHEM' => ShellyEm,
-      'SHSW-1' => Shelly1,
-      'SHSW-25' => Shelly25,
-      'SHSW-PM' => Shelly1Pm,
-      'SNSW-001P16EU' => ShellyPlus1Pm,
-      'SNSW-102P16EU' => ShellyPlus2Pm,
-      'S4SW-001P16EU' => Shelly1PmGen4
+      'SHDM-2' => Gen1::ShellyDimmer2,
+      'SHEM' => Gen1::ShellyEm,
+      'SHSW-1' => Gen1::Shelly1,
+      'SHSW-25' => Gen1::Shelly25,
+      'SHSW-PM' => Gen1::Shelly1Pm,
+      'SNSW-001P16EU' => Gen2::ShellyPlus1Pm,
+      'SNSW-102P16EU' => Gen2::ShellyPlus2Pm,
+      'S3DM-0A101WWL' => Gen3::ShellyDimmer,
+      'S4SW-001P16EU' => Gen4::Shelly1Pm
     }.freeze
 
     def initialize(topic, message)

@@ -1,6 +1,7 @@
-module Device
+module Components
   module Gen2
     module Versionable
+      # rubocop:disable Metrics/AbcSize
       def self.prepended(base)
         base.class_eval do
           update  :sw_version,
@@ -25,6 +26,7 @@ module Device
                   state_topic: ->(entity) { "#{entity.device.publish_topic_prefix}/firmware" }
         end
       end
+      # rubocop:enable Metrics/AbcSize
 
       def receive_announce(message)
         super
@@ -39,9 +41,8 @@ module Device
 
       def update_software_version_info(message)
         json_message = hashified_message(message)
-        @sw_version.latest_version = json_message[:sys]
-                                     .try(:[], :available_updates).try(:[], :stable)
-                                     .try(:[], :version) || @current_version
+        @sw_version.latest_version = json_message[:sys].try(:[], :available_updates).try(:[], :stable)
+                                                       .try(:[], :version) || @current_version
         @sw_version.state = @current_version
       end
 
@@ -60,14 +61,17 @@ module Device
         return @current_version unless json_message[:method] == 'NotifyEvent'
 
         params = json_message[:params]
-        if update_events?(params[:events])
-          params[:events].each do |event|
-            @sw_version.in_progress = %w[ota_begin ota_progress].include?(event[:event])
-            @sw_version.update_percentage = @sw_version.in_progress ? (event[:progress_percent] || 0.0) : nil
-            @current_version = @sw_version.in_progress ? @current_version : @sw_version.latest_version
-          end
-        end
+
+        return @curent_version unless update_events?(params[:events])
+
+        params[:events].each { |event| decode_version_from_event(event) }
         @current_version
+      end
+
+      def decode_version_from_event(event)
+        @sw_version.in_progress = %w[ota_begin ota_progress].include?(event[:event])
+        @sw_version.update_percentage = @sw_version.in_progress ? (event[:progress_percent] || 0.0) : nil
+        @current_version = @sw_version.in_progress ? @current_version : @sw_version.latest_version
       end
 
       def update_events?(events)

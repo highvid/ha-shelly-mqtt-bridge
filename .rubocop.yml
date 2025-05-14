@@ -6,9 +6,5 @@ Metrics/ClassLength:
   Enabled: false
 Metrics/MethodLength:
   Enabled: false
-Naming/VariableNumber:
-  Exclude:
-    - 'lib/device/**/*'
-Metrics/AbcSize:
-  Exclude:
-    - 'lib/device/**/*'
+AllCops:
+  SuggestExtensions: false
