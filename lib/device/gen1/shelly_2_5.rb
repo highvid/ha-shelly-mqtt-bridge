@@ -115,6 +115,7 @@ module Device
         @device_id = json_message[:mac]
       end
 
+      # rubocop:disable Metrics/AbcSize
       def update_info(message)
         AppLogger.debug "Update info #{name}"
         json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
@@ -127,6 +128,7 @@ module Device
         @power0.state = json_message[:meters][0][:power]
         @power1.state = json_message[:meters][1][:power]
       end
+      # rubocop:enable Metrics/AbcSize
 
       def post_state_update(entity_name)
         relay = instance_variable_get("@relay#{entity_name[-1]}")

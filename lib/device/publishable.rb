@@ -52,6 +52,7 @@ module Device
       announce_output
     end
 
+    # rubocop:disable Metrics/AbcSize
     def announcement_thread(topic, payload, listen_topic)
       @announcement_threads ||= {}
       topic_payload = "#{topic}-#{payload}"
@@ -70,6 +71,7 @@ module Device
         retry if Config.singleton.infinite_loop
       end
     end
+    # rubocop:enable Metrics/AbcSize
 
     def trigger_announce(topic:, payload:)
       announcement_client.publish(topic, payload)

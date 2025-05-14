@@ -144,6 +144,7 @@ module Device
         @device_id = json_message[:mac]
       end
 
+      # rubocop:disable Metrics/AbcSize
       def update_info(message)
         AppLogger.debug "Update info #{name}"
         json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
@@ -160,6 +161,7 @@ module Device
         @voltage0.state = json_message[:emeters][0][:voltage]
         @voltage1.state = json_message[:emeters][1][:voltage]
       end
+      # rubocop:enable Metrics/AbcSize
 
       def reactive_adapter_method_on_pf_change(message, entity)
         index = entity.name[-1]

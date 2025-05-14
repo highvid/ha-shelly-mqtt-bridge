@@ -95,6 +95,7 @@ module Device
         @device_id = json_message[:mac]
       end
 
+      # rubocop:disable Metrics/AbcSize
       def update_info(message)
         AppLogger.debug "Update info #{name}"
         json_message = JSON.parse(message).deep_symbolize_keys unless message.is_a?(Hash)
@@ -104,6 +105,7 @@ module Device
         @output.brightness = json_message[:lights][0][:brightness]
         @temperature.state = json_message[:tmp][:tC]
       end
+      # rubocop:enable Metrics/AbcSize
 
       def post_state_update(entity_name)
         control_client.update_light_state(@output.state&.downcase, @output.brightness) if entity_name.to_s == 'Light'
