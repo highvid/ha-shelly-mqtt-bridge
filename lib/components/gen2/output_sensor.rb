@@ -29,10 +29,8 @@ module Components
       def state_update_callback(message) = message
 
       def post_state_update(entity_name)
-        puts "Post State Update for entity: #{entity_name}"
         return unless entity_name.to_s.downcase.start_with?('output')
 
-        puts "Searching for entity: #{entity_name.parameterize(separator: '')}"
         state = instance_variable_get("@#{entity_name.parameterize(separator: '')}").state&.downcase
         publish_client.update_relay_state(state)
       end
