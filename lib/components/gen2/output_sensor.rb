@@ -26,9 +26,7 @@ module Components
         json_message.dig(*OutputSensor::KEYS)
       end
 
-      def state_update_callback(message)
-        message
-      end
+      def state_update_callback(message) = message
 
       def post_state_update(entity_name)
         puts "Post State Update for entity: #{entity_name}"
