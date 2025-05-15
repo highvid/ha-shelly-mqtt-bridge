@@ -44,8 +44,8 @@ module Components
       def post_state_update(entity_name)
         return unless entity_name.to_s.downcase.start_with?('light')
 
-        state = instance_variable_get("@#{entity_name.parameterize.underscore}").state&.downcase
-        brightness = instance_variable_get("@#{entity_name.parameterize.underscore}").brightness
+        state = instance_variable_get("@#{entity_name.parameterize(separator: '')}").state&.downcase
+        brightness = instance_variable_get("@#{entity_name.parameterize(separator: '')}").brightness
         publish_client.update_light_state(state, brightness)
       end
     end

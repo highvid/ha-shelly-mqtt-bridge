@@ -31,9 +31,11 @@ module Components
       end
 
       def post_state_update(entity_name)
+        puts "Post State Update for entity: #{entity_name}"
         return unless entity_name.to_s.downcase.start_with?('output')
 
-        state = instance_variable_get("@#{entity_name.parameterize.underscore}").state&.downcase
+        puts "Searching for entity: #{entity_name.parameterize(separator: '')}"
+        state = instance_variable_get("@#{entity_name.parameterize(separator: '')}").state&.downcase
         publish_client.update_relay_state(state)
       end
     end
