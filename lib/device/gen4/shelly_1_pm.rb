@@ -3,6 +3,7 @@ module Device
     class Shelly1Pm
       DEVICE = 'Shelly1PMGen4'.freeze
       MANUFACTURER = Config::BLIGHVID
+      STATE_KEY = :switch
 
       include Publishable
       prepend Components::Gen2::IterativeSensor
