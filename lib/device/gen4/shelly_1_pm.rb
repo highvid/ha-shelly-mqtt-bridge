@@ -1,12 +1,14 @@
 module Device
   module Gen4
-    class Shelly1Pm < Gen2::ShellyPlus1Pm
+    class Shelly1Pm
       DEVICE = 'Shelly1PMGen4'.freeze
       MANUFACTURER = Config::BLIGHVID
 
       include Publishable
       prepend Components::Gen2::IterativeSensor
       prepend Components::Gen2::Versionable
+      include Device::Gen2::Base
+
       define_sensors :input, 1, sensor_klass: :binary_sensor
       define_sensors :energy, 1
       define_sensors :power, 1
