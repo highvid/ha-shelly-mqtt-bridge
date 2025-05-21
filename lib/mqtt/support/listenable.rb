@@ -30,7 +30,7 @@ module Mqtt
           home_assistant_mqtt.get do |topic, message|
             if aggregated_command_topics[topic].present?
               handle(topic, aggregated_command_topics[topic] || [], message, with_update: true)
-            elsif topic == HOME_ASSISTANT_UPDATES_TOPIC
+            elsif topic == Mqtt::Subscriber::HOME_ASSISTANT_UPDATES_TOPIC
               check_and_publish_availability(message)
             else
               unhandled_command_topic(topic)
