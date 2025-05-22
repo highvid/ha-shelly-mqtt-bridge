@@ -1,5 +1,5 @@
 module Device
-  module Gen4
+  module Gen3
     class Shelly1PmMini
       DEVICE = 'Shelly1PMMini'.freeze
       MANUFACTURER = Config::BLIGHVID
