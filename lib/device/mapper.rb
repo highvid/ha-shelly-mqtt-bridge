@@ -11,6 +11,7 @@ module Device
       'SNSW-001P16EU' => Gen2::ShellyPlus1Pm,
       'SNSW-102P16EU' => Gen2::ShellyPlus2Pm,
       'S3DM-0A101WWL' => Gen3::ShellyDimmer,
+      'S3SW-001P8EU' => Gen3::Shelly1PmMini,
       'S4SW-001P16EU' => Gen4::Shelly1Pm
     }.freeze
 

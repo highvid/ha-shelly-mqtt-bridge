@@ -30,8 +30,8 @@ module Device
       end
 
       def publish_client
-        @publish_client ||= Mqtt::Clients.const_get(self.class.to_s.split('::').last)
-                                         .new(mqtt_client, "shellies/#{unique_id}")
+        klass = self.class.to_s.gsub('Device::', '')
+        @publish_client ||= Mqtt::Clients.const_get(klass).new(mqtt_client, "shellies/#{unique_id}")
       end
 
       def announcement_client
