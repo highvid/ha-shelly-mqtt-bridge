@@ -8,6 +8,7 @@ module Device
       'SHSW-1' => Gen1::Shelly1,
       'SHSW-25' => Gen1::Shelly25,
       'SHSW-PM' => Gen1::Shelly1Pm,
+      'SNSN-0024X' => Gen2::ShellyI4,
       'SNSW-001P16EU' => Gen2::ShellyPlus1Pm,
       'SNSW-102P16EU' => Gen2::ShellyPlus2Pm,
       'S3DM-0A101WWL' => Gen3::ShellyDimmer,
