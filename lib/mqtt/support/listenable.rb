@@ -13,7 +13,7 @@ module Mqtt
             AppLogger.debug "Got message from topic #{topic} -> #{message}"
             if aggregated_topics[topic].present?
               handle(topic, aggregated_topics[topic], message)
-            elsif topic == 'shellies/announce'
+            elsif topic =~ %r{shellies/.+/announce}
               discover(topic, message)
             else
               unhandled_topic(topic)
