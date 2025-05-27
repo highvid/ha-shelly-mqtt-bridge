@@ -24,7 +24,7 @@ module Device
     def const_get = CLASS_MAPPER[message['model']]
 
     def unique_id
-      @unique_id ||= message['name'] || message['id']
+      @unique_id ||= topic.split('/')[1..-2].join('/')
     end
 
     def base_topic = "shellies/#{unique_id}/#"

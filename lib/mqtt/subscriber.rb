@@ -21,7 +21,7 @@ module Mqtt
     end
 
     def subscribe_to_announcements
-      relay_mqtt.subscribe('shellies/announce')
+      relay_mqtt.subscribe('shellies/+/announce')
     end
 
     def subscribe_to_home_assistant_topics
